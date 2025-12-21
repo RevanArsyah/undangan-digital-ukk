@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 const MusicPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -8,16 +7,18 @@ const MusicPlayer: React.FC = () => {
     const handlePlay = () => {
       if (audioRef.current) {
         audioRef.current.play().catch((err) => {
-          console.warn("Autoplay dicegah oleh browser, membutuhkan interaksi pengguna.", err);
+          console.warn(
+            "Autoplay dicegah oleh browser, membutuhkan interaksi pengguna.",
+            err
+          );
         });
       }
     };
 
-    // Musik hanya akan diputar melalui event kustom ini
-    window.addEventListener('play-wedding-music', handlePlay);
-    
+    window.addEventListener("play-wedding-music", handlePlay);
+
     return () => {
-      window.removeEventListener('play-wedding-music', handlePlay);
+      window.removeEventListener("play-wedding-music", handlePlay);
     };
   }, []);
 

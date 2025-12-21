@@ -1,9 +1,6 @@
 node_modules
 /.env
 /.git
-# /.gitattributes
-# /.editorconfig
-# /.yarnrc.yml
 /.vscode
 /.astro
 /dist

@@ -94,7 +94,6 @@ const App: React.FC = () => {
   };
 
   return (
-    // Hapus bg-secondary di sini karena sudah di handle di global.css body
     <div className="min-h-screen relative selection:bg-accent/30 selection:text-primary overflow-x-hidden">
       {!isOpened && <Envelope onOpen={handleOpenInvitation} />}
 
@@ -144,7 +143,7 @@ const App: React.FC = () => {
             <div className="flex items-center justify-center gap-4 md:gap-6">
               <div className="h-[1px] w-10 md:w-20 bg-accent/30"></div>
               <p className="text-[12px] md:text-[20px] uppercase tracking-[0.4em] font-black text-accentDark dark:text-accent italic">
-                11 • 10 • 2026
+                11 • 10 • 2025
               </p>
               <div className="h-[1px] w-10 md:w-20 bg-accent/30"></div>
             </div>

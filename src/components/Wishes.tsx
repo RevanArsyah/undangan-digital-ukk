@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { dbService } from "../services/dbService";
-// import { Wish } from '../types';
 import type { Wish } from "../types";
 import {
-  MessageSquare,
   Quote,
   Heart,
   Send,
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Check,
 } from "lucide-react";
 
 const Wishes: React.FC = () => {
@@ -20,9 +19,17 @@ const Wishes: React.FC = () => {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isNameLocked, setIsNameLocked] = useState(false);
+  const [postSuccess, setPostSuccess] = useState(false);
 
   useEffect(() => {
     loadWishes();
+    const params = new URLSearchParams(window.location.search);
+    const to = params.get("to");
+    if (to) {
+      setName(to);
+      setIsNameLocked(true);
+    }
   }, []);
 
   const loadWishes = async () => {
@@ -31,16 +38,26 @@ const Wishes: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // 1. MENCEGAH RELOAD HALAMAN
     e.preventDefault();
+
     if (!name.trim() || !message.trim()) return;
 
     setIsSending(true);
     try {
       await dbService.saveWish({ name, message });
-      setName("");
+
       setMessage("");
+      // Jika locked, jangan hapus namanya
+      if (!isNameLocked) setName("");
+
+      // 2. Refresh list tanpa reload
       await loadWishes();
       setCurrentPage(1);
+
+      // 3. Efek visual sukses
+      setPostSuccess(true);
+      setTimeout(() => setPostSuccess(false), 3000);
     } catch (err) {
       console.error(err);
     } finally {
@@ -49,7 +66,6 @@ const Wishes: React.FC = () => {
   };
 
   const totalPages = Math.ceil(wishes.length / wishesPerPage);
-
   const currentWishes = useMemo(() => {
     const start = (currentPage - 1) * wishesPerPage;
     return wishes.slice(start, start + wishesPerPage);
@@ -68,14 +84,10 @@ const Wishes: React.FC = () => {
     const maxVisiblePages = window.innerWidth < 768 ? 3 : 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
     if (endPage - startPage < maxVisiblePages - 1) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+    for (let i = startPage; i <= endPage; i++) pages.push(i);
     return pages;
   };
 
@@ -103,7 +115,7 @@ const Wishes: React.FC = () => {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-10 md:gap-24 items-start">
-          {/* Form Section - Editorial Design */}
+          {/* Form Section */}
           <div className="lg:col-span-4 lg:sticky lg:top-32">
             <div className="frosted-glass p-8 md:p-14 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl relative overflow-hidden group border border-slate-200/50 dark:border-white/5">
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-[3s]"></div>
@@ -127,20 +139,23 @@ const Wishes: React.FC = () => {
                       <input
                         required
                         type="text"
-                        className="w-full bg-transparent border-b-2 border-slate-100 dark:border-white/5 py-3 md:py-6 focus:border-accentDark dark:focus:border-accent outline-none transition-all text-lg md:text-2xl font-serif italic text-slate-900 dark:text-white placeholder:text-slate-200 dark:placeholder:text-slate-800"
+                        disabled={isNameLocked}
+                        className={`w-full bg-transparent border-b-2 border-slate-100 dark:border-white/5 py-3 md:py-6 focus:border-accentDark dark:focus:border-accent outline-none transition-all text-lg md:text-2xl font-serif italic text-slate-900 dark:text-white placeholder:text-slate-200 dark:placeholder:text-slate-800 ${
+                          isNameLocked ? "opacity-60 cursor-not-allowed" : ""
+                        }`}
                         placeholder="Nama Lengkap"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
                       <label className="absolute -top-4 left-0 text-[8px] md:text-[10px] uppercase tracking-widest text-slate-400 font-black">
-                        Your Name
+                        Your Name {isNameLocked && "(Locked)"}
                       </label>
                     </div>
                     <div className="relative group/input">
                       <textarea
                         required
                         className="w-full bg-transparent border-b-2 border-slate-100 dark:border-white/5 py-3 md:py-6 focus:border-accentDark dark:focus:border-accent outline-none transition-all text-lg md:text-2xl font-serif italic h-32 md:h-52 resize-none text-slate-900 dark:text-white leading-relaxed placeholder:text-slate-200 dark:placeholder:text-slate-800"
-                        placeholder="Tuliskan harapan terbaik Anda..."
+                        placeholder="Tuliskan/Perbarui harapan terbaik Anda..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                       />
@@ -149,26 +164,44 @@ const Wishes: React.FC = () => {
                       </label>
                     </div>
                   </div>
+
+                  {/* STYLE TOMBOL DISAMAKAN PERSIS DENGAN RSVP */}
                   <button
-                    disabled={isSending}
+                    disabled={isSending || postSuccess}
                     type="submit"
-                    className="w-full py-5 md:py-8 bg-primary dark:bg-accentDark text-white rounded-2xl md:rounded-[3rem] font-black uppercase tracking-luxury text-[10px] md:text-[13px] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex items-center justify-center gap-4 disabled:opacity-50 active:scale-95 group/btn shadow-xl"
+                    className={`w-full py-3.5 md:py-6 text-white rounded-xl md:rounded-3xl font-bold uppercase tracking-luxury text-[9px] md:text-[11px] hover:shadow-xl transition-all duration-700 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95 group/btn shadow-sm ${
+                      postSuccess
+                        ? "bg-green-500 cursor-default"
+                        : "bg-primary dark:bg-accentDark"
+                    }`}
                   >
-                    {isSending ? "Sending..." : "Post Message"}
-                    <Send className="w-4 h-4 md:w-6 md:h-6 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                    {isSending ? (
+                      "Sending..."
+                    ) : postSuccess ? (
+                      <>
+                        Success <Check className="w-3.5 h-3.5 md:w-5 md:h-5" />
+                      </>
+                    ) : isNameLocked ? (
+                      "Update Message"
+                    ) : (
+                      "Send Message"
+                    )}
+                    {!isSending && !postSuccess && (
+                      <Send className="w-3.5 h-3.5 md:w-5 md:h-5 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                    )}
                   </button>
                 </form>
               </div>
             </div>
           </div>
 
-          {/* List Section - High-End Grid */}
+          {/* List Section */}
           <div className="lg:col-span-8 space-y-12 md:space-y-20">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-10">
               {currentWishes.map((wish) => (
                 <div
                   key={wish.id}
-                  className="editorial-card p-8 md:p-14 rounded-[2.5rem] md:rounded-[4rem] group hover:-translate-y-2 transition-all duration-700 flex flex-col shadow-xl hover:shadow-2xl border border-slate-50 dark:border-white/5 bg-white dark:bg-darkSurface"
+                  className="editorial-card p-8 md:p-14 rounded-[2.5rem] md:rounded-[4rem] group hover:-translate-y-2 transition-all duration-700 flex flex-col shadow-xl hover:shadow-2xl border border-slate-50 dark:border-white/5 bg-white dark:bg-darkSurface animate-reveal"
                 >
                   <div className="space-y-6 md:space-y-10 flex-grow">
                     <div className="flex justify-between items-start">
@@ -184,7 +217,7 @@ const Wishes: React.FC = () => {
 
                   <div className="mt-8 md:mt-16 flex items-center gap-4 md:gap-6 border-t border-slate-50 dark:border-white/5 pt-6 md:pt-10">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/10 flex items-center justify-center text-[12px] md:text-[18px] font-black text-accentDark dark:text-accent border border-slate-100 dark:border-white/10 shadow-inner">
-                      {wish.name.charAt(0)}
+                      {wish.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[10px] md:text-[14px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-100 truncate">
@@ -203,7 +236,7 @@ const Wishes: React.FC = () => {
               ))}
             </div>
 
-            {/* Luxurious Pagination */}
+            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex flex-col items-center gap-8 md:gap-12">
                 <div className="flex items-center justify-center gap-3 md:gap-6">
@@ -240,14 +273,6 @@ const Wishes: React.FC = () => {
                   >
                     <ChevronRight className="w-6 h-6 md:w-10 md:h-10" />
                   </button>
-                </div>
-
-                <div className="flex items-center gap-4 opacity-30">
-                  <div className="h-[1px] w-8 bg-slate-400"></div>
-                  <span className="text-[10px] md:text-[12px] uppercase tracking-luxury font-black text-slate-500 italic">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <div className="h-[1px] w-8 bg-slate-400"></div>
                 </div>
               </div>
             )}
