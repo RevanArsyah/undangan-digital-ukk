@@ -1,16 +1,16 @@
 {
-  "name": "wedding-invitation",
+  "name": "undangan-digital-ukk",
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "author": {
-    "name": "Yahya Zulfikri",
-    "email": "zulfikriyahya18@gmail.com",
-    "url": "https://wedding.feyaya.com"
+    "name": "Mohamad Revan Ardiansya",
+    "email": "revan020707@gmail.com",
+    "url": "url.com"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --host",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -28,7 +28,7 @@
     "astro": "^5.16.6",
     "better-sqlite3": "^12.5.0",
     "file-saver": "^2.0.5",
-    "jspdf": "^3.0.4",
+    "jspdf": "^4.0.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.562.0",
     "papaparse": "^5.5.3",
