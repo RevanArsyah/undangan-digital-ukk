@@ -13,6 +13,9 @@ export default defineConfig({
     mode: "standalone",
   }),
   vite: {
+    server: {
+      allowedHosts: ["pseudoisometric-monochasial-filiberto.ngrok-free.dev"],
+    },
     plugins: [
       tailwind(),
       VitePWA({
