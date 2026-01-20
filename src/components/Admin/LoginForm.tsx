@@ -23,17 +23,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include", // IMPORTANT: Include cookies in request
                 body: JSON.stringify({ username, password }),
             });
 
             const data = await res.json();
 
             if (res.ok) {
-                if (onSuccess) {
-                    onSuccess();
-                } else {
-                    window.location.href = "/admin";
-                }
+                // Use reload instead of href to ensure cookie is properly set
+                window.location.reload();
             } else {
                 setError(data.error || "Login failed");
             }

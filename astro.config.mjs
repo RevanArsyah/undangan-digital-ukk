@@ -14,7 +14,7 @@ export default defineConfig({
   }),
   vite: {
     server: {
-      allowedHosts: ["pseudoisometric-monochasial-filiberto.ngrok-free.dev"],
+      allowedHosts: ["pseudoisometric-monochasial-filiberto.ngrok-free.dev"],  // ← Ganti dengan URL ngrok Anda
     },
     plugins: [
       tailwind(),

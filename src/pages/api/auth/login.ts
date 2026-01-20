@@ -60,7 +60,7 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
             httpOnly: true,
             secure: import.meta.env.PROD,
             maxAge: 60 * 60 * 24, // 24 hours
-            sameSite: "strict",
+            sameSite: "lax", // Changed from "strict" for ngrok compatibility
         });
 
         return new Response(
