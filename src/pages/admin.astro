@@ -2,34 +2,51 @@
 import Layout from "../layouts/Layout.astro";
 import db from "../lib/db";
 import AdminDashboard from "../components/Admin/AdminDashboard";
+import UserManagement from "../components/Admin/UserManagement";
+import LoginForm from "../components/Admin/LoginForm";
 import { LogOut, CheckCircle2, XCircle, HelpCircle, Users } from "lucide-react";
+import { findUserById } from "../lib/auth";
+import type { AuthSession } from "../types";
 
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || "admin123";
-const COOKIE_NAME = "wedding_admin_auth";
+const COOKIE_NAME = "wedding_admin_session";
 
-// Login Logic
+// Verify session
+let isAuthenticated = false;
+let currentUser: any = null;
+
+const sessionCookie = Astro.cookies.get(COOKIE_NAME)?.value;
+if (sessionCookie) {
+  try {
+    const session: AuthSession = JSON.parse(sessionCookie);
+    const user = findUserById(session.userId);
+    if (user) {
+      isAuthenticated = true;
+      currentUser = {
+        id: user.id,
+        username: user.username,
+        fullName: user.full_name,
+        role: user.role,
+      };
+    } else {
+      // Invalid session - user deleted or deactivated
+      Astro.cookies.delete(COOKIE_NAME, { path: "/" });
+    }
+  } catch (e) {
+    // Invalid session
+    Astro.cookies.delete(COOKIE_NAME, { path: "/" });
+  }
+}
+
+// Handle logout
 if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
   const action = formData.get("action");
-  if (action === "login") {
-    const passwordInput = formData.get("password")?.toString();
-    if (passwordInput === ADMIN_PASSWORD) {
-      Astro.cookies.set(COOKIE_NAME, "true", {
-        path: "/",
-        httpOnly: true,
-        secure: import.meta.env.PROD,
-        maxAge: 60 * 60 * 24,
-      });
-      return Astro.redirect("/admin");
-    }
-  }
   if (action === "logout") {
     Astro.cookies.delete(COOKIE_NAME, { path: "/" });
     return Astro.redirect("/admin");
   }
 }
 
-const isAuthenticated = Astro.cookies.has(COOKIE_NAME);
 let rsvps = [],
   wishes = [],
   stats = { total: 0, hadir: 0, ragu: 0, tidak: 0, guestCount: 0 };
@@ -53,31 +70,7 @@ if (isAuthenticated) {
   >
     {
       !isAuthenticated ? (
-        <div class="flex h-screen w-full items-center justify-center px-4">
-          <div class="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl dark:bg-slate-800">
-            <div class="text-center">
-              <h1 class="font-serif text-3xl font-bold text-slate-900 italic dark:text-white">
-                Admin Access
-              </h1>
-            </div>
-            <form method="POST" class="mt-8 space-y-6">
-              <input type="hidden" name="action" value="login" />
-              <input
-                type="password"
-                name="password"
-                required
-                class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-4 text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                placeholder="Password..."
-              />
-              <button
-                type="submit"
-                class="w-full rounded-lg bg-slate-900 px-4 py-4 text-sm font-bold text-white hover:bg-slate-800 dark:bg-blue-600"
-              >
-                MASUK
-              </button>
-            </form>
-          </div>
-        </div>
+        <LoginForm client:load />
       ) : (
         <div class="container mx-auto max-w-7xl px-4 py-10">
           <div class="mb-10 flex flex-col items-center justify-between gap-4 md:flex-row">
@@ -86,7 +79,10 @@ if (isAuthenticated) {
                 Wedding Dashboard
               </h1>
               <p class="text-sm text-slate-500 dark:text-slate-400">
-                Selamat datang, Admin
+                Welcome, {currentUser.fullName || currentUser.username}
+                <span class="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                  {currentUser.role.replace("_", " ").toUpperCase()}
+                </span>
               </p>
             </div>
             <form method="POST">
@@ -97,70 +93,141 @@ if (isAuthenticated) {
             </form>
           </div>
 
-          {/* STATS */}
-          <div class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-            <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
-              <div class="flex items-center gap-3 text-slate-400">
-                <>
-                  <Users className="h-5 w-5" />
-                  <span class="text-xs font-bold uppercase">Total Respon</span>
-                </>
-              </div>
-              <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
-                {stats.total}
-              </p>
-            </div>
-            <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
-              <div class="flex items-center gap-3 text-green-500">
-                <>
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span class="text-xs font-bold uppercase">Hadir</span>
-                </>
-              </div>
-              <div class="mt-2 flex items-baseline gap-2">
-                <>
-                  <span class="text-3xl font-bold text-slate-900 dark:text-white">
-                    {stats.hadir}
-                  </span>
-                  <span class="text-lg font-medium text-slate-400">
-                    ({stats.guestCount} Pax)
-                  </span>
-                </>
-              </div>
-            </div>
-            <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
-              <div class="flex items-center gap-3 text-yellow-500">
-                <>
-                  <HelpCircle className="h-5 w-5" />
-                  <span class="text-xs font-bold uppercase">Ragu</span>
-                </>
-              </div>
-              <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
-                {stats.ragu}
-              </p>
-            </div>
-            <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
-              <div class="flex items-center gap-3 text-red-500">
-                <>
-                  <XCircle className="h-5 w-5" />
-                  <span class="text-xs font-bold uppercase">Tidak Hadir</span>
-                </>
-              </div>
-              <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
-                {stats.tidak}
-              </p>
+          {/* TABS */}
+          <div class="mb-6">
+            <div class="border-b border-slate-200 dark:border-slate-700">
+              <nav class="-mb-px flex gap-6">
+                <button
+                  id="tab-dashboard"
+                  class="tab-btn border-b-2 border-blue-500 px-1 py-4 text-sm font-semibold text-blue-600 dark:text-blue-400"
+                  data-tab="dashboard"
+                >
+                  Dashboard
+                </button>
+                {currentUser.role === "super_admin" && (
+                  <button
+                    id="tab-users"
+                    class="tab-btn border-b-2 border-transparent px-1 py-4 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                    data-tab="users"
+                  >
+                    User Management
+                  </button>
+                )}
+              </nav>
             </div>
           </div>
 
-          {/* MAIN DASHBOARD */}
-          <AdminDashboard
-            client:load
-            initialRsvps={rsvps}
-            initialWishes={wishes}
-            siteUrl={Astro.site?.toString() || "https://wedding.feyaya.com"}
-          />
+          {/* DASHBOARD TAB */}
+          <div id="content-dashboard" class="tab-content">
+            {/* STATS */}
+            <div class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
+              <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+                <div class="flex items-center gap-3 text-slate-400">
+                  <>
+                    <Users className="h-5 w-5" />
+                    <span class="text-xs font-bold uppercase">Total Respon</span>
+                  </>
+                </div>
+                <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {stats.total}
+                </p>
+              </div>
+              <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+                <div class="flex items-center gap-3 text-green-500">
+                  <>
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span class="text-xs font-bold uppercase">Hadir</span>
+                  </>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                  <>
+                    <span class="text-3xl font-bold text-slate-900 dark:text-white">
+                      {stats.hadir}
+                    </span>
+                    <span class="text-lg font-medium text-slate-400">
+                      ({stats.guestCount} Pax)
+                    </span>
+                  </>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+                <div class="flex items-center gap-3 text-yellow-500">
+                  <>
+                    <HelpCircle className="h-5 w-5" />
+                    <span class="text-xs font-bold uppercase">Ragu</span>
+                  </>
+                </div>
+                <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {stats.ragu}
+                </p>
+              </div>
+              <div class="rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+                <div class="flex items-center gap-3 text-red-500">
+                  <>
+                    <XCircle className="h-5 w-5" />
+                    <span class="text-xs font-bold uppercase">Tidak Hadir</span>
+                  </>
+                </div>
+                <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {stats.tidak}
+                </p>
+              </div>
+            </div>
+
+            {/* MAIN DASHBOARD */}
+            <AdminDashboard
+              client:load
+              initialRsvps={rsvps}
+              initialWishes={wishes}
+              siteUrl={Astro.site?.toString() || "https://wedding.feyaya.com"}
+            />
+          </div>
+
+          {/* USER MANAGEMENT TAB */}
+          {currentUser.role === "super_admin" && (
+            <div id="content-users" class="tab-content hidden">
+              <UserManagement client:load currentUserRole={currentUser.role} />
+            </div>
+          )}
         </div>
       )
     }
   </main>
+
+  <script>
+    // Tab switching
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabName = btn.getAttribute("data-tab");
+
+        // Update button styles
+        tabButtons.forEach((b) => {
+          b.classList.remove("border-blue-500", "text-blue-600", "dark:text-blue-400");
+          b.classList.add(
+            "border-transparent",
+            "text-slate-500",
+            "dark:text-slate-400"
+          );
+        });
+        btn.classList.add("border-blue-500", "text-blue-600", "dark:text-blue-400");
+        btn.classList.remove(
+          "border-transparent",
+          "text-slate-500",
+          "dark:text-slate-400"
+        );
+
+        // Show/hide content
+        tabContents.forEach((content) => {
+          if (content.id === `content-${tabName}`) {
+            content.classList.remove("hidden");
+          } else {
+            content.classList.add("hidden");
+          }
+        });
+      });
+    });
+  </script>
 </Layout>

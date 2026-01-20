@@ -64,3 +64,32 @@ export interface WeddingEvent {
   startDateTime: Date;
   endDateTime: Date;
 }
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  password_hash: string;
+  full_name?: string;
+  email?: string;
+  role: "super_admin" | "admin" | "viewer";
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+  last_login?: string;
+}
+
+export interface AuthSession {
+  userId: number;
+  username: string;
+  role: string;
+}
+
+export interface PasswordResetToken {
+  id: number;
+  user_id: number;
+  token: string;
+  expires_at: string;
+  used: number;
+  created_at: string;
+}
+

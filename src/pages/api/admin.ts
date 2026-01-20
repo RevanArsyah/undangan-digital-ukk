@@ -1,9 +1,26 @@
 import type { APIRoute } from "astro";
 import db from "../../lib/db";
+import { findUserById } from "../../lib/auth";
+import type { AuthSession } from "../../types";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-  const auth = cookies.get("wedding_admin_auth")?.value;
-  if (auth !== "true") {
+  // Verify session
+  const sessionCookie = cookies.get("wedding_admin_session")?.value;
+  if (!sessionCookie) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+
+  try {
+    const session: AuthSession = JSON.parse(sessionCookie);
+    const user = findUserById(session.userId);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+  } catch (e) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
     });
