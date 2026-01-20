@@ -48,23 +48,48 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         // Create reset token
         const resetToken = createResetToken(user.id);
 
-        // In a real app, you would send an email here
-        // For now, we'll just log it (or you can integrate with a service)
-        console.log("=".repeat(60));
-        console.log("PASSWORD RESET TOKEN GENERATED");
-        console.log("=".repeat(60));
-        console.log(`User: ${user.username} (${user.email})`);
-        console.log(`Token: ${resetToken.token}`);
-        console.log(`Expires: ${resetToken.expires_at}`);
-        console.log(`Reset URL: /admin/reset-password?token=${resetToken.token}`);
-        console.log("=".repeat(60));
+        // Send email
+        const { sendPasswordResetEmail, isEmailConfigured } = await import(
+            "../../../utils/email"
+        );
+
+        let emailSent = false;
+        if (isEmailConfigured()) {
+            emailSent = await sendPasswordResetEmail(
+                user.email!,
+                user.username,
+                resetToken.token
+            );
+        }
+
+        // Log token for development
+        if (!emailSent || import.meta.env.DEV) {
+            console.log("=".repeat(60));
+            console.log("PASSWORD RESET TOKEN GENERATED");
+            console.log("=".repeat(60));
+            console.log(`User: ${user.username} (${user.email})`);
+            console.log(`Token: ${resetToken.token}`);
+            console.log(`Expires: ${resetToken.expires_at}`);
+            console.log(`Reset URL: /admin/reset-password?token=${resetToken.token}`);
+            if (!emailSent) {
+                console.log("\n⚠️  Email not sent (email not configured or failed)");
+                console.log("Configure email in .env to send actual emails:");
+                console.log("  EMAIL_HOST=smtp.gmail.com");
+                console.log("  EMAIL_PORT=587");
+                console.log("  EMAIL_USER=your-email@gmail.com");
+                console.log("  EMAIL_PASSWORD=your-app-password");
+            }
+            console.log("=".repeat(60));
+        }
 
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Password reset instructions have been sent.",
-                // In development, include the token
-                ...(import.meta.env.DEV && { token: resetToken.token }),
+                message: emailSent
+                    ? "Password reset instructions have been sent to your email."
+                    : "If the email exists, a reset link will be sent.",
+                // In development, include the token if email wasn't sent
+                ...(import.meta.env.DEV && !emailSent && { token: resetToken.token }),
             }),
             { status: 200 }
         );

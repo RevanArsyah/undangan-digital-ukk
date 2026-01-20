@@ -108,6 +108,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         const user = await createUser(username, password, fullName, email || null, role);
 
+        // Send welcome email if email is provided and configured
+        if (email) {
+            const { sendWelcomeEmail, isEmailConfigured } = await import(
+                "../../../utils/email"
+            );
+            if (isEmailConfigured()) {
+                await sendWelcomeEmail(email, username, fullName, role);
+            }
+        }
+
         return new Response(
             JSON.stringify({
                 success: true,
