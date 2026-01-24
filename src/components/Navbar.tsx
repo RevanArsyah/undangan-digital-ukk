@@ -8,6 +8,8 @@ import {
   Home,
   Moon,
   Sun,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 interface NavbarProps {
   theme: "light" | "dark";
@@ -15,6 +17,7 @@ interface NavbarProps {
 }
 const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
   const timeoutRef = useRef<number | null>(null);
   const resetTimer = () => {
     setIsVisible(true);
@@ -38,6 +41,12 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
     window.dispatchEvent(new CustomEvent("play-wedding-music"));
     resetTimer();
   };
+
+  const toggleMusic = () => {
+    setIsMusicMuted((prev) => !prev);
+    window.dispatchEvent(new CustomEvent("toggle-music"));
+    resetTimer();
+  };
   const navItems = [
     { icon: Home, label: "Home", href: "#" },
     { icon: User, label: "Couple", href: "#couple" },
@@ -52,9 +61,8 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
     "absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-accent text-white dark:text-slate-900 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap hidden md:block shadow-xl pointer-events-none";
   return (
     <nav
-      className={`pointer-events-none fixed bottom-4 left-1/2 z-[100] w-[95%] -translate-x-1/2 px-2 transition-all duration-700 ease-in-out md:bottom-8 md:w-fit ${
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
-      }`}
+      className={`pointer-events-none fixed bottom-4 left-1/2 z-[100] w-[95%] -translate-x-1/2 px-2 transition-all duration-700 ease-in-out md:bottom-8 md:w-fit ${isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
+        }`}
     >
       <div className="dark:bg-darkSurface/60 pointer-events-auto flex items-center justify-between gap-1 rounded-full border border-white/40 bg-white/60 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.2)] backdrop-blur-2xl transition-colors duration-1000 md:justify-center md:p-2 dark:border-white/10">
         {navItems.map((item) => (
@@ -69,6 +77,23 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
             <span className={tooltipClass}>{item.label}</span>
           </a>
         ))}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleMusic();
+          }}
+          className={itemBaseClass}
+          aria-label="Toggle music"
+        >
+          {isMusicMuted ? (
+            <VolumeX className="h-5 w-5 md:h-6 md:w-6" />
+          ) : (
+            <Volume2 className="h-5 w-5 md:h-6 md:w-6" />
+          )}
+          <span className={tooltipClass}>
+            {isMusicMuted ? "Unmute Music" : "Mute Music"}
+          </span>
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();

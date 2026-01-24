@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MUSIC_URL } from "../constants";
 
 const MusicPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     const handlePlay = () => {
@@ -16,12 +17,24 @@ const MusicPlayer: React.FC = () => {
       }
     };
 
+    const handleToggleMusic = () => {
+      setIsMuted((prev) => !prev);
+    };
+
     window.addEventListener("play-wedding-music", handlePlay);
+    window.addEventListener("toggle-music", handleToggleMusic);
 
     return () => {
       window.removeEventListener("play-wedding-music", handlePlay);
+      window.removeEventListener("toggle-music", handleToggleMusic);
     };
   }, []);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   return (
     <audio
