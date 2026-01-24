@@ -20,13 +20,13 @@
     "setup:admin": "tsx scripts/setup-admin.ts"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.1",
+    "@astrojs/node": "^9.5.2",
     "@astrojs/react": "^4.4.2",
-    "@astrojs/sitemap": "^3.6.0",
+    "@astrojs/sitemap": "^3.7.0",
     "@tailwindcss/vite": "^4.1.18",
     "@types/file-saver": "^2.0.7",
     "@types/papaparse": "^5.5.2",
-    "astro": "^5.16.6",
+    "astro": "^5.16.15",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.5.0",
     "file-saver": "^2.0.5",
