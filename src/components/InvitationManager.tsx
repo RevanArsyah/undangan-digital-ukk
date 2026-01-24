@@ -237,7 +237,7 @@ const InvitationManager: React.FC = () => {
     const height = doc.internal.pageSize.getHeight();
     const cx = width / 2;
 
-    const siteUrl = window.location.origin;
+    const siteUrl = import.meta.env.PUBLIC_SITE_URL || window.location.origin;
     const guestUrl = `${siteUrl}/?to=${encodeURIComponent(guest.name)}`;
     const qrGuestImg = await QRCode.toDataURL(guestUrl, {
       margin: 0,
@@ -793,11 +793,10 @@ const InvitationManager: React.FC = () => {
                 setCurrentTheme(theme);
                 setPreviewUri(null);
               }}
-              className={`group relative flex h-16 w-16 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl ${
-                currentTheme.id === theme.id
+              className={`group relative flex h-16 w-16 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl ${currentTheme.id === theme.id
                   ? "scale-110 border-slate-800 ring-4 ring-slate-200 dark:border-white dark:ring-slate-700"
                   : "border-transparent hover:border-slate-300 dark:hover:border-slate-600"
-              }`}
+                }`}
               style={{
                 backgroundColor: `rgb(${theme.bg[0]},${theme.bg[1]},${theme.bg[2]})`,
               }}
@@ -832,21 +831,19 @@ const InvitationManager: React.FC = () => {
         <div className="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
           <button
             onClick={() => setActiveTab("single")}
-            className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${
-              activeTab === "single"
+            className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${activeTab === "single"
                 ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+              }`}
           >
             Manual (Satuan)
           </button>
           <button
             onClick={() => setActiveTab("bulk")}
-            className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${
-              activeTab === "bulk"
+            className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${activeTab === "bulk"
                 ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+              }`}
           >
             Import CSV (Banyak)
           </button>

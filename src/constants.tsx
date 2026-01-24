@@ -133,3 +133,6 @@ export const GALLERY_IMAGES = parseJson(import.meta.env.PUBLIC_GALLERY_IMAGES, [
   "https://placehold.co/800x1200",
   "https://placehold.co/1200x800",
 ]);
+
+export const SITE_URL = import.meta.env.PUBLIC_SITE_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4321');
