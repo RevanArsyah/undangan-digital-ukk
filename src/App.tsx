@@ -15,6 +15,7 @@ import { Heart, Quote, ChevronUp } from "lucide-react";
 import { dbService } from "./services/dbService";
 import { WEDDING_CONFIG, WEDDING_TEXT } from "./constants";
 import InstallPrompt from "./components/InstallPrompt";
+import Footer from "./components/Footer";
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -190,8 +191,11 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <Footer />
     </div>
   );
 };
 
 export default App;
+

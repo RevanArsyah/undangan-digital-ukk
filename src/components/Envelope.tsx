@@ -1,17 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { MailOpen, Sparkles } from "lucide-react";
 import { WEDDING_CONFIG } from "../constants";
+import { slugToName } from "../utils/slugify";
+
 interface EnvelopeProps {
   onOpen: () => void;
 }
+
+interface GuestData {
+  id: number;
+  guest_name: string;
+  guest_slug: string;
+  max_guests: number;
+  guest_category: string;
+  qr_open_count: number;
+}
+
 const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
   const [guestName, setGuestName] = useState<string>("");
+  const [guestData, setGuestData] = useState<GuestData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isAnimate, setIsAnimate] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const to = params.get("to");
-    if (to) setGuestName(to);
+    const slug = params.get("to");
+
+    if (slug) {
+      setIsLoading(true);
+
+      // Fetch guest data from API
+      fetch(`/api/guest/${slug}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.guest) {
+            // Guest found in database
+            setGuestName(data.guest.guest_name);
+            setGuestData(data.guest);
+            
+            // Store guest data in sessionStorage for RSVP form
+            sessionStorage.setItem("guest_data", JSON.stringify(data.guest));
+          } else {
+            // Fallback: Convert slug to readable name
+            const fallbackName = data.fallback_name || slugToName(slug);
+            setGuestName(fallbackName);
+            setGuestData(null);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching guest data:", error);
+          // Fallback on error
+          setGuestName(slugToName(slug));
+          setGuestData(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+
     setTimeout(() => setIsAnimate(true), 300);
   }, []);
   const handleOpenClick = () => {

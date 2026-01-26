@@ -52,6 +52,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const message = sanitize(rawData.message);
     const attendance = rawData.attendance;
     const guest_count = rawData.guest_count;
+    const guest_id = rawData.guest_id; // New: guest_invitations ID
 
     // Cek Data Lama
     const checkStmt = db.prepare("SELECT id FROM rsvps WHERE guest_name = ?");
@@ -95,6 +96,20 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       );
       actionType = "created";
       resultId = Number(result.lastInsertRowid);
+    }
+
+    // Update guest_invitations table if guest_id is provided
+    if (guest_id) {
+      try {
+        const updateGuestStmt = db.prepare(`
+          UPDATE guest_invitations 
+          SET has_rsvp = 1, rsvp_id = ?
+          WHERE id = ?
+        `);
+        updateGuestStmt.run(resultId, guest_id);
+      } catch (e) {
+        console.error("Failed to update guest_invitations:", e);
+      }
     }
 
     // --- LOGIC NOTIFIKASI TELEGRAM ---

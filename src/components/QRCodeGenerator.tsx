@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Download, Link as LinkIcon } from "lucide-react";
 import { WEDDING_CONFIG } from "../constants"; // Import Config
+import { generateGuestSlug } from "../utils/slugify";
 
 const QRCodeGenerator: React.FC<{ siteUrl: string }> = ({ siteUrl }) => {
   const [guestName, setGuestName] = useState("");
@@ -11,7 +12,8 @@ const QRCodeGenerator: React.FC<{ siteUrl: string }> = ({ siteUrl }) => {
 
   const generateUrl = () => {
     if (!guestName) return baseUrl;
-    return `${baseUrl}/?to=${encodeURIComponent(guestName.trim())}`;
+    const slug = generateGuestSlug(guestName.trim());
+    return `${baseUrl}/?to=${slug}`;
   };
 
   // --- GENERATE PREMIUM LOGO (SAMA DENGAN QR MANAGER) ---
@@ -95,12 +97,17 @@ const QRCodeGenerator: React.FC<{ siteUrl: string }> = ({ siteUrl }) => {
             type="text"
             value={guestName}
             onChange={(e) => setGuestName(e.target.value)}
-            placeholder="Contoh: Ahmad SYarief Ramadhan & Partner"
+            placeholder="Contoh: Ahmad Syarief Ramadhan & Partner"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-lg transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           />
           <p className="text-xs text-slate-400 italic">
             *Nama akan otomatis muncul di sampul undangan & form RSVP.
           </p>
+          {guestName && (
+            <p className="text-xs text-blue-600 font-mono dark:text-blue-400">
+              Slug: {generateGuestSlug(guestName.trim())}
+            </p>
+          )}
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs break-all text-slate-500 dark:border-slate-700 dark:bg-slate-900/50">

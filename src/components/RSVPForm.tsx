@@ -25,6 +25,8 @@ const RSVPForm: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isNameLocked, setIsNameLocked] = useState(false);
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
+  const [guestId, setGuestId] = useState<number | null>(null);
+  const [maxGuestsLimit, setMaxGuestsLimit] = useState(MAX_GUESTS);
 
   const loadRSVPs = async () => {
     const data = await dbService.getRSVPs();
@@ -32,11 +34,30 @@ const RSVPForm: React.FC = () => {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const to = params.get("to");
-    if (to) {
-      setFormData((prev) => ({ ...prev, guest_name: to }));
-      setIsNameLocked(true);
+    // Try to get guest data from sessionStorage first
+    const guestDataStr = sessionStorage.getItem("guest_data");
+    if (guestDataStr) {
+      try {
+        const guestData = JSON.parse(guestDataStr);
+        setFormData((prev) => ({
+          ...prev,
+          guest_name: guestData.guest_name,
+          phone: guestData.phone || "",
+        }));
+        setGuestId(guestData.id);
+        setMaxGuestsLimit(guestData.max_guests || MAX_GUESTS);
+        setIsNameLocked(true);
+      } catch (e) {
+        console.error("Failed to parse guest data:", e);
+      }
+    } else {
+      // Fallback to URL parameter
+      const params = new URLSearchParams(window.location.search);
+      const to = params.get("to");
+      if (to) {
+        setFormData((prev) => ({ ...prev, guest_name: to }));
+        setIsNameLocked(true);
+      }
     }
     loadRSVPs();
   }, []);
@@ -47,7 +68,12 @@ const RSVPForm: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await dbService.saveRSVP(formData);
+      // Include guest_id if available for linking
+      const payload = guestId
+        ? { ...formData, guest_id: guestId }
+        : formData;
+      
+      await dbService.saveRSVP(payload);
       setSubmitted(true);
       await loadRSVPs();
     } catch (err) {
@@ -241,7 +267,7 @@ const RSVPForm: React.FC = () => {
                       {formData.attendance === AttendanceStatus.HADIR && (
                         <div className="animate-reveal space-y-3">
                           <p className="tracking-editorial mb-1 text-[8px] font-bold text-slate-400 uppercase md:text-[9px]">
-                            Jumlah Tamu (Max {MAX_GUESTS})
+                            Jumlah Tamu (Max {maxGuestsLimit})
                           </p>
                           <div className="flex items-center gap-4">
                             <button
@@ -259,7 +285,7 @@ const RSVPForm: React.FC = () => {
                               type="button"
                               onClick={() => handleGuestCount("inc")}
                               className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 transition-colors hover:bg-slate-50 disabled:opacity-30 dark:border-white/10 dark:hover:bg-white/5"
-                              disabled={formData.guest_count >= MAX_GUESTS}
+                              disabled={formData.guest_count >= maxGuestsLimit}
                             >
                               <Plus className="h-4 w-4" />
                             </button>
