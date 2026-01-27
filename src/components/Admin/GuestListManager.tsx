@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Users,
   Plus,
@@ -8,7 +8,9 @@ import {
   ExternalLink,
   CheckCircle,
   Clock,
+  Download,
 } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
 import { generateGuestSlug } from "../../utils/slugify";
 
 interface Guest {
@@ -43,6 +45,9 @@ const GuestListManager: React.FC = () => {
     max_guests: 2,
     notes: "",
   });
+
+  // QR Code refs for download
+  const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
 
   useEffect(() => {
     fetchGuests();
@@ -151,6 +156,20 @@ const GuestListManager: React.FC = () => {
       max_guests: 2,
       notes: "",
     });
+  };
+
+  // Download single QR code
+  const downloadSingleQR = (guest: Guest) => {
+    const canvas = canvasRefs.current[guest.id];
+    if (canvas) {
+      const pngUrl = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pngUrl;
+      downloadLink.download = `QR-${guest.guest_slug}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
   };
 
   const filteredGuests = guests.filter((guest) =>
@@ -441,6 +460,13 @@ const GuestListManager: React.FC = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => downloadSingleQR(guest)}
+                        className="text-green-600 hover:text-green-700"
+                        title="Download QR"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
                       <a
                         href={`/?to=${guest.guest_slug}`}
                         target="_blank"
@@ -471,6 +497,27 @@ const GuestListManager: React.FC = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Hidden QR Canvases for download */}
+      <div style={{ display: "none" }}>
+        {guests.map((guest) => (
+          <QRCodeCanvas
+            key={guest.id}
+            ref={(el) => {
+              canvasRefs.current[guest.id] = el;
+            }}
+            value={`${typeof window !== "undefined" ? window.location.origin : ""}/?to=${guest.guest_slug}`}
+            size={180}
+            level="H"
+            imageSettings={{
+              src: "/logo-qr.png",
+              height: 30,
+              width: 30,
+              excavate: true,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

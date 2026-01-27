@@ -8,13 +8,11 @@ import {
   Download,
   Users,
   MessageCircle,
-  QrCode,
   Printer,
   Save,
   Loader2,
   X,
 } from "lucide-react";
-import QRCodeManager from "../QRCodeManager";
 import InvitationManager from "../InvitationManager";
 
 // --- TYPES ---
@@ -284,17 +282,14 @@ const DataTable = <T extends { id: number }>({
   );
 };
 
-// --- MAIN DASHBOARD COMPONENT ---
 const AdminDashboard = ({
   initialRsvps,
   initialWishes,
-  siteUrl,
 }: {
   initialRsvps: RSVP[];
   initialWishes: Wish[];
-  siteUrl: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<"rsvp" | "wishes" | "qr" | "pdf">(
+  const [activeTab, setActiveTab] = useState<"rsvp" | "wishes" | "pdf">(
     "rsvp"
   );
 
@@ -376,11 +371,9 @@ const AdminDashboard = ({
     }
   };
 
-  // --- TABS CONFIG ---
   const tabs = [
     { id: "rsvp", label: "Data RSVP", icon: Users },
     { id: "wishes", label: "Ucapan & Doa", icon: MessageCircle },
-    { id: "qr", label: "QR Generator", icon: QrCode },
     { id: "pdf", label: "Design PDF", icon: Printer },
   ];
 
@@ -521,12 +514,6 @@ const AdminDashboard = ({
         </div>
       )}
 
-      {/* --- TAB: QR --- */}
-      {activeTab === "qr" && (
-        <div className="animate-reveal rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <QRCodeManager siteUrl={siteUrl} />
-        </div>
-      )}
 
       {/* --- TAB: PDF --- */}
       {activeTab === "pdf" && (
