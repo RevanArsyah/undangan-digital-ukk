@@ -1,0 +1,88 @@
+Table rsvps {
+  id integer [pk, increment]
+  guest_name text [not null]
+  phone text
+  attendance text
+  guest_count integer
+  message text
+  created_at text [default: `CURRENT_TIMESTAMP`]
+}
+
+Table wishes {
+  id integer [pk, increment]
+  name text [not null]
+  message text [not null]
+  created_at text [default: `CURRENT_TIMESTAMP`]
+}
+
+Table admin_users {
+  id integer [pk, increment]
+  username text [not null, unique]
+  password_hash text [not null]
+  full_name text
+  email text
+  role text [default: 'admin']
+  is_active integer [default: 1]
+  created_at text [default: `CURRENT_TIMESTAMP`]
+  updated_at text [default: `CURRENT_TIMESTAMP`]
+  last_login text
+}
+
+Table password_reset_tokens {
+  id integer [pk, increment]
+  user_id integer [not null]
+  token text [not null, unique]
+  expires_at text [not null]
+  used integer [default: 0]
+  created_at text [default: `CURRENT_TIMESTAMP`]
+}
+
+Table guest_invitations {
+  id integer [pk, increment]
+  guest_name text [not null]
+  guest_slug text [not null, unique]
+  phone text
+  email text
+  guest_category text
+  max_guests integer [default: 2]
+  qr_opened_at text
+  qr_open_count integer [default: 0]
+  last_opened_at text
+  has_rsvp integer [default: 0]
+  rsvp_id integer
+  is_sent integer [default: 0]
+  sent_at text
+  sent_via text
+  notes text
+  created_at text [default: `CURRENT_TIMESTAMP`]
+  updated_at text [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    guest_slug [name: 'idx_guest_slug']
+    guest_category [name: 'idx_guest_category']
+    has_rsvp [name: 'idx_guest_has_rsvp']
+    is_sent [name: 'idx_guest_is_sent']
+    created_at [name: 'idx_guest_created_at']
+  }
+}
+
+Ref: password_reset_tokens.user_id > admin_users.id [delete: cascade]
+Ref: guest_invitations.rsvp_id > rsvps.id [delete: set null]
+
+Enum attendance_status {
+  hadir
+  ragu
+  tidak
+}
+
+Enum guest_category_type {
+  keluarga
+  teman
+  kantor
+  lainnya
+}
+
+Enum user_role {
+  admin
+  super_admin
+}

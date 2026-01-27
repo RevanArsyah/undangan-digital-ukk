@@ -1,282 +1,132 @@
 -- ============================================
--- WEDDING INVITATION DATABASE SCHEMA
--- ============================================
+-- Digital Wedding Invitation Database Schema
+-- Project: undangan-digital-ukk
+-- Developer: Revan Arsyah - UKK 2026
 -- Database: SQLite
--- Project: Undangan Digital Pernikahan
--- Created: 2026-01-27
 -- ============================================
 
 -- ============================================
 -- TABLE: rsvps
--- Description: Manajemen konfirmasi kehadiran tamu
+-- Stores RSVP responses from guests
 -- ============================================
 CREATE TABLE IF NOT EXISTS rsvps (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  guest_name TEXT NOT NULL,
-  phone TEXT,
-  attendance TEXT CHECK(attendance IN ('Hadir', 'Tidak Hadir', 'Ragu')),
-  guest_count INTEGER CHECK(guest_count >= 0 AND guest_count <= 20),
-  message TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_name TEXT NOT NULL,
+    attendance TEXT NOT NULL CHECK(attendance IN ('hadir', 'ragu', 'tidak')),
+    guest_count INTEGER DEFAULT 1,
+    message TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index untuk performa
-CREATE INDEX IF NOT EXISTS idx_rsvps_guest_name ON rsvps(guest_name);
 CREATE INDEX IF NOT EXISTS idx_rsvps_attendance ON rsvps(attendance);
-CREATE INDEX IF NOT EXISTS idx_rsvps_created_at ON rsvps(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_rsvps_created_at ON rsvps(created_at);
 
 -- ============================================
 -- TABLE: wishes
--- Description: Buku tamu digital (ucapan & doa)
+-- Stores wedding wishes from guests
 -- ============================================
 CREATE TABLE IF NOT EXISTS wishes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  message TEXT NOT NULL,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index untuk performa
-CREATE INDEX IF NOT EXISTS idx_wishes_name ON wishes(name);
-CREATE INDEX IF NOT EXISTS idx_wishes_created_at ON wishes(created_at DESC);
-
--- ============================================
--- TABLE: admin_users
--- Description: Manajemen pengguna admin
--- ============================================
-CREATE TABLE IF NOT EXISTS admin_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  full_name TEXT,
-  email TEXT,
-  role TEXT DEFAULT 'admin' CHECK(role IN ('admin', 'super_admin', 'operator')),
-  is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  last_login TEXT
-);
-
--- Index untuk performa
-CREATE INDEX IF NOT EXISTS idx_admin_username ON admin_users(username);
-CREATE INDEX IF NOT EXISTS idx_admin_email ON admin_users(email);
-CREATE INDEX IF NOT EXISTS idx_admin_active ON admin_users(is_active);
-
--- ============================================
--- TABLE: password_reset_tokens
--- Description: Token untuk reset password admin
--- ============================================
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  token TEXT UNIQUE NOT NULL,
-  expires_at TEXT NOT NULL,
-  used INTEGER DEFAULT 0 CHECK(used IN (0, 1)),
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES admin_users(id) ON DELETE CASCADE
-);
-
--- Index untuk performa
-CREATE INDEX IF NOT EXISTS idx_tokens_token ON password_reset_tokens(token);
-CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON password_reset_tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_tokens_expires_at ON password_reset_tokens(expires_at);
-CREATE INDEX IF NOT EXISTS idx_tokens_used ON password_reset_tokens(used);
+CREATE INDEX IF NOT EXISTS idx_wishes_created_at ON wishes(created_at);
 
 -- ============================================
 -- TABLE: guest_invitations
--- Description: Manajemen daftar undangan tamu dengan tracking
+-- Master table for guest management with tracking
 -- ============================================
 CREATE TABLE IF NOT EXISTS guest_invitations (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  
-  -- Guest Info
-  guest_name TEXT NOT NULL,
-  guest_slug TEXT UNIQUE NOT NULL,
-  phone TEXT,
-  email TEXT,
-  guest_category TEXT CHECK(guest_category IN ('keluarga', 'teman', 'kantor', 'lainnya')),
-  max_guests INTEGER DEFAULT 2 CHECK(max_guests >= 1 AND max_guests <= 20),
-  
-  -- Tracking
-  qr_opened_at TEXT,
-  qr_open_count INTEGER DEFAULT 0,
-  last_opened_at TEXT,
-  has_rsvp INTEGER DEFAULT 0 CHECK(has_rsvp IN (0, 1)),
-  rsvp_id INTEGER,
-  
-  -- Sending Status
-  is_sent INTEGER DEFAULT 0 CHECK(is_sent IN (0, 1)),
-  sent_at TEXT,
-  sent_via TEXT,
-  
-  -- Metadata
-  notes TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  
-  FOREIGN KEY (rsvp_id) REFERENCES rsvps(id) ON DELETE SET NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_name TEXT NOT NULL UNIQUE,
+    guest_slug TEXT NOT NULL UNIQUE,
+    guest_category TEXT CHECK(guest_category IN ('keluarga', 'teman', 'kerja', 'sekolah', 'lainnya')),
+    max_guests INTEGER DEFAULT 1,
+    phone_number TEXT,
+    email TEXT,
+    address TEXT,
+    notes TEXT,
+    qr_code_data TEXT,
+    qr_open_count INTEGER DEFAULT 0,
+    last_opened_at TEXT,
+    has_rsvp BOOLEAN DEFAULT 0,
+    rsvp_status TEXT CHECK(rsvp_status IN ('hadir', 'ragu', 'tidak')),
+    rsvp_guest_count INTEGER,
+    rsvp_submitted_at TEXT,
+    checked_in_at TEXT,
+    checked_in_by TEXT,
+    check_in_notes TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index untuk performa
 CREATE INDEX IF NOT EXISTS idx_guest_slug ON guest_invitations(guest_slug);
 CREATE INDEX IF NOT EXISTS idx_guest_category ON guest_invitations(guest_category);
-CREATE INDEX IF NOT EXISTS idx_guest_has_rsvp ON guest_invitations(has_rsvp);
-CREATE INDEX IF NOT EXISTS idx_guest_is_sent ON guest_invitations(is_sent);
-CREATE INDEX IF NOT EXISTS idx_guest_created_at ON guest_invitations(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_has_rsvp ON guest_invitations(has_rsvp);
+CREATE INDEX IF NOT EXISTS idx_rsvp_status ON guest_invitations(rsvp_status);
+CREATE INDEX IF NOT EXISTS idx_checked_in_at ON guest_invitations(checked_in_at);
 
 -- ============================================
--- SAMPLE DATA (Optional - for testing)
+-- TABLE: users
+-- Admin users for system management
 -- ============================================
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    full_name TEXT,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK(role IN ('super_admin', 'admin')),
+    reset_token TEXT,
+    reset_token_expires TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login TEXT
+);
 
--- Sample RSVP data
-INSERT OR IGNORE INTO rsvps (guest_name, phone, attendance, guest_count, message) VALUES
-('Budi Santoso', '081234567890', 'Hadir', 3, 'Selamat menempuh hidup baru!'),
-('Siti Nurhaliza', '082345678901', 'Tidak Hadir', 0, 'Mohon maaf tidak bisa hadir'),
-('Ahmad Dhani', '083456789012', 'Ragu', 2, 'Akan konfirmasi lagi nanti');
-
--- Sample Wishes data
-INSERT OR IGNORE INTO wishes (name, message) VALUES
-('Rina Wijaya', 'Barakallahu lakuma wa baraka alaikuma wa jamaa bainakuma fi khair'),
-('Doni Pratama', 'Semoga menjadi keluarga yang sakinah, mawaddah, warahmah'),
-('Lisa Andriani', 'Selamat menempuh hidup baru, semoga langgeng sampai kakek nenek!');
-
--- Sample Admin User (password: admin123)
--- Hash generated with: bcrypt.hash('admin123', 10)
-INSERT OR IGNORE INTO admin_users (username, password_hash, full_name, email, role) VALUES
-('admin', '$2b$10$YourBcryptHashHere', 'Administrator', 'admin@wedding.com', 'super_admin');
-
--- Sample Guest Invitations
-INSERT OR IGNORE INTO guest_invitations (guest_name, guest_slug, phone, email, guest_category, max_guests) VALUES
-('Keluarga Bapak Budi Santoso', 'keluarga-bapak-budi-santoso', '081234567890', 'budi@email.com', 'keluarga', 5),
-('Siti Nurhaliza', 'siti-nurhaliza', '082345678901', 'siti@email.com', 'teman', 2),
-('Ahmad Dhani & Partner', 'ahmad-dhani-dan-partner', '083456789012', 'ahmad@email.com', 'kantor', 2),
-('Keluarga Dr. Rina Wijaya', 'keluarga-dr-rina-wijaya', '084567890123', 'rina@email.com', 'keluarga', 4),
-('Teman SMA Bandung', 'teman-sma-bandung', '085678901234', NULL, 'teman', 3);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_token);
 
 -- ============================================
--- VIEWS (Optional - for easier querying)
+-- VIEW: v_guest_summary
+-- Summary statistics for dashboard
 -- ============================================
-
--- View: RSVP Statistics
-CREATE VIEW IF NOT EXISTS v_rsvp_stats AS
-SELECT 
-  COUNT(*) as total_responses,
-  SUM(CASE WHEN attendance = 'Hadir' THEN 1 ELSE 0 END) as total_hadir,
-  SUM(CASE WHEN attendance = 'Hadir' THEN guest_count ELSE 0 END) as total_pax,
-  SUM(CASE WHEN attendance = 'Ragu' THEN 1 ELSE 0 END) as total_ragu,
-  SUM(CASE WHEN attendance = 'Tidak Hadir' THEN 1 ELSE 0 END) as total_tidak_hadir
-FROM rsvps;
-
--- View: Recent RSVPs
-CREATE VIEW IF NOT EXISTS v_recent_rsvps AS
-SELECT 
-  id,
-  guest_name,
-  phone,
-  attendance,
-  guest_count,
-  message,
-  created_at
-FROM rsvps
-ORDER BY created_at DESC
-LIMIT 50;
-
--- View: Recent Wishes
-CREATE VIEW IF NOT EXISTS v_recent_wishes AS
-SELECT 
-  id,
-  name,
-  message,
-  created_at
-FROM wishes
-ORDER BY created_at DESC
-LIMIT 50;
-
--- View: Active Admins
-CREATE VIEW IF NOT EXISTS v_active_admins AS
-SELECT 
-  id,
-  username,
-  full_name,
-  email,
-  role,
-  last_login,
-  created_at
-FROM admin_users
-WHERE is_active = 1
-ORDER BY last_login DESC;
-
--- View: Guest Statistics by Category
-CREATE VIEW IF NOT EXISTS v_guest_stats AS
-SELECT 
-  guest_category,
-  COUNT(*) as total_invitations,
-  SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as opened_count,
-  SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as rsvp_count,
-  SUM(CASE WHEN is_sent = 1 THEN 1 ELSE 0 END) as sent_count,
-  ROUND(AVG(qr_open_count), 2) as avg_open_count
-FROM guest_invitations
-GROUP BY guest_category;
-
--- View: Guest Summary (Overall Stats)
 CREATE VIEW IF NOT EXISTS v_guest_summary AS
 SELECT 
-  COUNT(*) as total_invitations,
-  SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as total_opened,
-  SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as total_rsvp,
-  SUM(CASE WHEN is_sent = 1 THEN 1 ELSE 0 END) as total_sent,
-  SUM(CASE WHEN qr_open_count = 0 THEN 1 ELSE 0 END) as total_not_opened,
-  ROUND(CAST(SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as opened_percentage,
-  ROUND(CAST(SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as rsvp_percentage
+    COUNT(*) as total_invitations,
+    SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as total_opened,
+    SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as total_rsvp,
+    SUM(CASE WHEN rsvp_status = 'hadir' THEN 1 ELSE 0 END) as total_hadir,
+    SUM(CASE WHEN rsvp_status = 'ragu' THEN 1 ELSE 0 END) as total_ragu,
+    SUM(CASE WHEN rsvp_status = 'tidak' THEN 1 ELSE 0 END) as total_tidak,
+    SUM(CASE WHEN rsvp_status = 'hadir' THEN COALESCE(rsvp_guest_count, 0) ELSE 0 END) as total_confirmed_guests,
+    ROUND(CAST(SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100, 2) as open_rate,
+    ROUND(CAST(SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100, 2) as rsvp_rate
 FROM guest_invitations;
 
 -- ============================================
--- TRIGGERS (Optional - for auto-update)
+-- VIEW: v_category_stats
+-- Statistics grouped by category
 -- ============================================
+CREATE VIEW IF NOT EXISTS v_category_stats AS
+SELECT 
+    guest_category as category,
+    COUNT(*) as total_invitations,
+    SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as total_opened,
+    SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as total_rsvp,
+    SUM(CASE WHEN rsvp_status = 'hadir' THEN 1 ELSE 0 END) as total_hadir,
+    SUM(CASE WHEN rsvp_status = 'hadir' THEN COALESCE(rsvp_guest_count, 0) ELSE 0 END) as confirmed_guests
+FROM guest_invitations
+GROUP BY guest_category;
 
--- Trigger: Auto-update updated_at on admin_users
-CREATE TRIGGER IF NOT EXISTS trg_admin_updated_at
-AFTER UPDATE ON admin_users
-FOR EACH ROW
-BEGIN
-  UPDATE admin_users 
-  SET updated_at = CURRENT_TIMESTAMP 
-  WHERE id = NEW.id;
-END;
-
--- Trigger: Auto-cleanup expired tokens (on insert)
-CREATE TRIGGER IF NOT EXISTS trg_cleanup_expired_tokens
-AFTER INSERT ON password_reset_tokens
-BEGIN
-  DELETE FROM password_reset_tokens
-  WHERE datetime(expires_at) < datetime('now')
-     OR used = 1;
-END;
-
--- Trigger: Auto-update updated_at on guest_invitations
-CREATE TRIGGER IF NOT EXISTS trg_guest_updated_at
+-- ============================================
+-- TRIGGER: Update timestamp on guest_invitations
+-- ============================================
+CREATE TRIGGER IF NOT EXISTS update_guest_invitations_timestamp 
 AFTER UPDATE ON guest_invitations
-FOR EACH ROW
 BEGIN
-  UPDATE guest_invitations 
-  SET updated_at = CURRENT_TIMESTAMP 
-  WHERE id = NEW.id;
+    UPDATE guest_invitations 
+    SET updated_at = CURRENT_TIMESTAMP 
+    WHERE id = NEW.id;
 END;
-
--- ============================================
--- MAINTENANCE QUERIES
--- ============================================
-
--- Enable WAL mode for better concurrency
-PRAGMA journal_mode = WAL;
-
--- Enable foreign keys
-PRAGMA foreign_keys = ON;
-
--- Optimize database
-VACUUM;
-ANALYZE;
-
--- ============================================
--- END OF SCHEMA
--- ============================================

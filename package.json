@@ -30,6 +30,7 @@
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.5.0",
     "file-saver": "^2.0.5",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^4.0.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.562.0",
