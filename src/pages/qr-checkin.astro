@@ -1,0 +1,124 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { WEDDING_CONFIG } from "../constants";
+
+const guestName = Astro.url.searchParams.get("guest") || "Tamu";
+const guestSlug = Astro.url.searchParams.get("slug") || "";
+---
+
+<Layout title={`QR Check-in - ${guestName}`}>
+  <!-- Background with same styling as Hero -->
+  <div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
+    <!-- Background Image with Overlays -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src={WEDDING_CONFIG.hero.image}
+        class="h-full w-full object-cover"
+        alt="Wedding Backdrop"
+      />
+      <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-[0.5px] dark:bg-slate-950/60"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="z-10 container mx-auto px-4 py-8">
+      <div class="w-full max-w-md mx-auto">
+        <!-- Frosted Glass Card - Same as invitation countdown -->
+        <div class="frosted-glass rounded-[2rem] border border-white/40 dark:border-white/10 shadow-2xl p-8 space-y-6 text-center">
+          <!-- Title -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-center gap-3">
+              <div class="h-[1px] w-12 bg-white/30"></div>
+              <span class="tracking-luxury text-[10px] font-light text-white/80 uppercase">
+                QR Check-in
+              </span>
+              <div class="h-[1px] w-12 bg-white/30"></div>
+            </div>
+            <h1 class="font-serif text-3xl md:text-4xl font-bold text-white italic">
+              {guestName}
+            </h1>
+          </div>
+
+          <!-- QR Code Container -->
+          <div id="qr-container" class="flex justify-center rounded-2xl bg-white p-6 shadow-inner">
+            <!-- QR will be rendered here -->
+          </div>
+
+          <!-- Instructions -->
+          <div class="space-y-2 rounded-xl bg-white/10 backdrop-blur-sm p-4 border border-white/20">
+            <p class="text-sm font-semibold text-white">
+              📱 Tunjukkan QR ini saat check-in
+            </p>
+            <p class="text-xs text-white/70">
+              Simpan screenshot atau tunjukkan langsung dari halaman ini kepada panitia di lokasi acara
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3">
+            <button
+              id="download-btn"
+              class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 font-semibold text-slate-900 shadow-lg transition-all hover:bg-accent/90 active:scale-95"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download
+            </button>
+            <button
+              onclick="window.close()"
+              class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-sm px-6 py-3 font-semibold text-white shadow-lg transition-all hover:bg-white/30 active:scale-95 border border-white/30"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import QRCode from 'qrcode';
+
+    const guestSlug = new URLSearchParams(window.location.search).get('slug') || '';
+    const guestName = new URLSearchParams(window.location.search).get('guest') || 'Tamu';
+
+    // Generate QR Code
+    const container = document.getElementById('qr-container');
+    if (container && guestSlug) {
+      QRCode.toCanvas(guestSlug, {
+        width: 280,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }, (err, canvas) => {
+        if (err) {
+          console.error('QR generation error:', err);
+          container.innerHTML = '<p class="text-red-600">Gagal membuat QR code</p>';
+        } else {
+          canvas.className = 'rounded-lg mx-auto';
+          container.innerHTML = '';
+          container.appendChild(canvas);
+        }
+      });
+    }
+
+    // Download functionality
+    document.getElementById('download-btn')?.addEventListener('click', () => {
+      const canvas = document.querySelector('#qr-container canvas') as HTMLCanvasElement;
+      if (canvas) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `qr-${guestSlug || 'guest'}.png`;
+            link.click();
+          }
+        });
+      }
+    });
+  </script>
+</Layout>

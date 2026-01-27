@@ -4,9 +4,11 @@ import db from "../lib/db";
 import AdminDashboard from "../components/Admin/AdminDashboard";
 import UserManagement from "../components/Admin/UserManagement";
 import LoginForm from "../components/Admin/LoginForm";
-import GuestListManager from "../components/admin/GuestListManager";
-import GuestAnalytics from "../components/admin/GuestAnalytics";
-import BatchQRGenerator from "../components/admin/BatchQRGenerator";
+import GuestListManager from "../components/Admin/GuestListManager";
+import GuestAnalytics from "../components/Admin/GuestAnalytics";
+import BatchQRGenerator from "../components/Admin/BatchQRGenerator";
+import CheckInDashboard from "../components/CheckInDashboard";
+import CheckInList from "../components/CheckInList";
 import { LogOut, CheckCircle2, XCircle, HelpCircle, Users } from "lucide-react";
 import { findUserById } from "../lib/auth";
 import type { AuthSession } from "../types";
@@ -76,7 +78,7 @@ if (isAuthenticated) {
         <LoginForm client:load />
       ) : (
         <div class="flex h-screen overflow-hidden">
-          {/* SIDEBAR - Auto-collapse with hover to expand */}
+          {/* DESKTOP SIDEBAR - Auto-collapse with hover to expand */}
           <aside id="sidebar" class="group hidden w-20 flex-col border-r border-slate-200 bg-white transition-all duration-300 hover:w-64 dark:border-slate-700 dark:bg-slate-800 lg:flex">
             {/* Logo/Header */}
             <div class="border-b border-slate-200 p-6 dark:border-slate-700">
@@ -139,6 +141,30 @@ if (isAuthenticated) {
                 <span class="sidebar-content overflow-hidden whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover:opacity-100">QR Batch</span>
               </button>
 
+              <button
+                id="nav-checkin-scan"
+                class="nav-btn flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                data-tab="checkin-scan"
+                title="Check-in Scan"
+              >
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="sidebar-content overflow-hidden whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover:opacity-100">Check-in Scan</span>
+              </button>
+
+              <button
+                id="nav-checkin-list"
+                class="nav-btn flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                data-tab="checkin-list"
+                title="Check-in List"
+              >
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span class="sidebar-content overflow-hidden whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover:opacity-100">Check-in List</span>
+              </button>
+
               {currentUser.role === "super_admin" && (
                 <button
                   id="nav-users"
@@ -166,11 +192,120 @@ if (isAuthenticated) {
             </div>
           </aside>
 
-          {/* MOBILE MENU TOGGLE */}
+          {/* MOBILE SIDEBAR OVERLAY */}
+          <div id="mobile-sidebar-overlay" class="fixed inset-0 z-40 hidden bg-black/50 backdrop-blur-sm lg:hidden">
+            <aside id="mobile-sidebar" class="fixed left-0 top-0 bottom-0 w-64 flex flex-col border-r border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800 transform -translate-x-full transition-transform duration-300">
+              {/* Mobile Header */}
+              <div class="border-b border-slate-200 p-6 dark:border-slate-700">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h1 class="font-serif text-xl font-bold italic text-slate-900 dark:text-white">
+                      Wedding Admin
+                    </h1>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {currentUser.fullName || currentUser.username}
+                    </p>
+                    <span class="mt-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      {currentUser.role.replace("_", " ").toUpperCase()}
+                    </span>
+                  </div>
+                  <button id="mobile-sidebar-close" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Navigation */}
+              <nav class="flex-1 space-y-1 overflow-y-auto p-4">
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-left text-sm font-semibold text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                  data-tab="dashboard"
+                >
+                  <CheckCircle2 className="h-5 w-5 shrink-0" />
+                  <span>Dashboard</span>
+                </button>
+
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                  data-tab="guests"
+                >
+                  <Users className="h-5 w-5 shrink-0" />
+                  <span>Guest List</span>
+                </button>
+
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                  data-tab="analytics"
+                >
+                  <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span>Analytics</span>
+                </button>
+
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                  data-tab="qr-batch"
+                >
+                  <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                  <span>QR Batch</span>
+                </button>
+
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                  data-tab="checkin-scan"
+                >
+                  <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Check-in Scan</span>
+                </button>
+
+                <button
+                  class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                  data-tab="checkin-list"
+                >
+                  <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  <span>Check-in List</span>
+                </button>
+
+                {currentUser.role === "super_admin" && (
+                  <button
+                    class="nav-btn-mobile flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50"
+                    data-tab="users"
+                  >
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>User Management</span>
+                  </button>
+                )}
+              </nav>
+
+              {/* Mobile Logout Button */}
+              <div class="border-t border-slate-200 p-4 dark:border-slate-700">
+                <form method="POST">
+                  <input type="hidden" name="action" value="logout" />
+                  <button class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+                    <LogOut className="h-5 w-5 shrink-0" />
+                    <span>Logout</span>
+                  </button>
+                </form>
+              </div>
+            </aside>
+          </div>
+
+          {/* MOBILE MENU TOGGLE BUTTON */}
           <div class="fixed bottom-4 right-4 z-50 lg:hidden">
             <button
               id="mobile-menu-toggle"
-              class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700"
+              class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:scale-95 transition-transform"
             >
               <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -272,6 +407,16 @@ if (isAuthenticated) {
                 <BatchQRGenerator client:load siteUrl={import.meta.env.PUBLIC_SITE_URL || Astro.site?.toString() || "https://wedding.feyaya.com"} />
               </div>
 
+              {/* CHECK-IN SCAN TAB */}
+              <div id="content-checkin-scan" class="tab-content hidden">
+                <CheckInDashboard client:load />
+              </div>
+
+              {/* CHECK-IN LIST TAB */}
+              <div id="content-checkin-list" class="tab-content hidden">
+                <CheckInList client:load />
+              </div>
+
               {/* USER MANAGEMENT TAB */}
               {currentUser.role === "super_admin" && (
                 <div id="content-users" class="tab-content hidden">
@@ -286,7 +431,7 @@ if (isAuthenticated) {
   </main>
 
   <script>
-    // Navigation switching
+    // Desktop Navigation switching
     const navButtons = document.querySelectorAll(".nav-btn");
     const tabContents = document.querySelectorAll(".tab-content");
 
@@ -313,12 +458,78 @@ if (isAuthenticated) {
       });
     });
 
-    // Mobile menu toggle (optional enhancement)
+    // Mobile Sidebar Toggle
     const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+    const mobileSidebarOverlay = document.getElementById("mobile-sidebar-overlay");
+    const mobileSidebar = document.getElementById("mobile-sidebar");
+    const mobileSidebarClose = document.getElementById("mobile-sidebar-close");
+    const mobileNavButtons = document.querySelectorAll(".nav-btn-mobile");
+
+    // Open mobile sidebar
     if (mobileMenuToggle) {
       mobileMenuToggle.addEventListener("click", () => {
-        alert("Mobile menu - coming soon!");
+        mobileSidebarOverlay?.classList.remove("hidden");
+        setTimeout(() => {
+          mobileSidebar?.classList.remove("-translate-x-full");
+        }, 10);
       });
     }
+
+    // Close mobile sidebar
+    const closeMobileSidebar = () => {
+      mobileSidebar?.classList.add("-translate-x-full");
+      setTimeout(() => {
+        mobileSidebarOverlay?.classList.add("hidden");
+      }, 300);
+    };
+
+    // Close button
+    mobileSidebarClose?.addEventListener("click", closeMobileSidebar);
+
+    // Click overlay to close
+    mobileSidebarOverlay?.addEventListener("click", (e) => {
+      if (e.target === mobileSidebarOverlay) {
+        closeMobileSidebar();
+      }
+    });
+
+    // Mobile Navigation switching
+    mobileNavButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabName = btn.getAttribute("data-tab");
+
+        // Update mobile button styles
+        mobileNavButtons.forEach((b) => {
+          b.classList.remove("bg-blue-50", "text-blue-600", "dark:bg-blue-900/20", "dark:text-blue-400", "font-semibold");
+          b.classList.add("text-slate-600", "hover:bg-slate-50", "dark:text-slate-400", "dark:hover:bg-slate-700/50", "font-medium");
+        });
+        btn.classList.add("bg-blue-50", "text-blue-600", "dark:bg-blue-900/20", "dark:text-blue-400", "font-semibold");
+        btn.classList.remove("text-slate-600", "hover:bg-slate-50", "dark:text-slate-400", "dark:hover:bg-slate-700/50", "font-medium");
+
+        // Update desktop button styles to match
+        navButtons.forEach((b) => {
+          const desktopTabName = b.getAttribute("data-tab");
+          if (desktopTabName === tabName) {
+            b.classList.add("bg-blue-50", "text-blue-600", "dark:bg-blue-900/20", "dark:text-blue-400");
+            b.classList.remove("text-slate-600", "hover:bg-slate-50", "dark:text-slate-400", "dark:hover:bg-slate-700/50");
+          } else {
+            b.classList.remove("bg-blue-50", "text-blue-600", "dark:bg-blue-900/20", "dark:text-blue-400");
+            b.classList.add("text-slate-600", "hover:bg-slate-50", "dark:text-slate-400", "dark:hover:bg-slate-700/50");
+          }
+        });
+
+        // Show/hide content
+        tabContents.forEach((content) => {
+          if (content.id === `content-${tabName}`) {
+            content.classList.remove("hidden");
+          } else {
+            content.classList.add("hidden");
+          }
+        });
+
+        // Close mobile sidebar after navigation
+        closeMobileSidebar();
+      });
+    });
   </script>
 </Layout>

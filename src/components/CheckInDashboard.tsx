@@ -54,9 +54,16 @@ const CheckInDashboard: React.FC = () => {
 
   const handleScanSuccess = async (decodedText: string) => {
     try {
-      // Extract guest slug from URL
-      const url = new URL(decodedText);
-      const slug = url.searchParams.get("to");
+      let slug: string | null = null;
+
+      // Try to parse as URL first
+      try {
+        const url = new URL(decodedText);
+        slug = url.searchParams.get("to");
+      } catch {
+        // If not a URL, treat as direct slug
+        slug = decodedText.trim();
+      }
 
       if (!slug) {
         setCheckInMessage({

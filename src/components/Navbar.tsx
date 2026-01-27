@@ -10,6 +10,7 @@ import {
   Sun,
   Volume2,
   VolumeX,
+  QrCode,
 } from "lucide-react";
 interface NavbarProps {
   theme: "light" | "dark";
@@ -18,33 +19,50 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestSlug, setGuestSlug] = useState("");
   const timeoutRef = useRef<number | null>(null);
   const resetTimer = () => {
     setIsVisible(true);
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-      if (window.scrollY > 100) {
-        setIsVisible(false);
-      }
-    }, 3000);
+    timeoutRef.current = window.setTimeout(() => setIsVisible(false), 3000);
   };
   useEffect(() => {
     const events = ["mousemove", "scroll", "touchstart", "keydown"];
     events.forEach((event) => window.addEventListener(event, resetTimer));
     resetTimer();
+
+    // Extract guest name from URL parameter
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const toParam = params.get("to");
+      if (toParam) {
+        setGuestName(decodeURIComponent(toParam));
+        // Convert to slug
+        const slug = toParam
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "");
+        setGuestSlug(slug);
+      }
+    }
+
     return () => {
       events.forEach((event) => window.removeEventListener(event, resetTimer));
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
     };
   }, []);
-  const handleAction = () => {
-    window.dispatchEvent(new CustomEvent("play-wedding-music"));
-    resetTimer();
-  };
-
   const toggleMusic = () => {
     setIsMusicMuted((prev) => !prev);
     window.dispatchEvent(new CustomEvent("toggle-music"));
+    resetTimer();
+  };
+
+  const openQRPage = () => {
+    window.open(
+      `/qr-checkin?guest=${encodeURIComponent(guestName)}&slug=${guestSlug}`,
+      "_blank"
+    );
     resetTimer();
   };
   const navItems = [
@@ -71,7 +89,6 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
             href={item.href}
             className={itemBaseClass}
             title={item.label}
-            onClick={handleAction}
           >
             <item.icon className="h-5 w-5 md:h-6 md:w-6" />
             <span className={tooltipClass}>{item.label}</span>
@@ -94,6 +111,19 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
             {isMusicMuted ? "Unmute Music" : "Mute Music"}
           </span>
         </button>
+        {guestName && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openQRPage();
+            }}
+            className={itemBaseClass}
+            aria-label="Show QR Code"
+          >
+            <QrCode className="h-5 w-5 md:h-6 md:w-6" />
+            <span className={tooltipClass}>QR Check-in</span>
+          </button>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
