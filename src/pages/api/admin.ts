@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import db from "../../lib/db";
-import { findUserById } from "../../lib/auth";
+import { findUserById, hasPermission } from "../../lib/auth"; // Added hasPermission
 import type { AuthSession } from "../../types";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -12,9 +12,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
+  let user;
   try {
     const session: AuthSession = JSON.parse(sessionCookie);
-    const user = findUserById(session.userId);
+    user = findUserById(session.userId);
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -26,9 +27,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
+  // --- PERMISSION CHECK ---
+  // Default to requiring 'edit' for updates and 'delete' for deletions.
+  // Note: hasPermission(role, action)
+  
   try {
     const body = await request.json();
     const { action, id, ids, data } = body;
+
+    // Check permissions based on action
+    if (action.includes("update") || action.includes("edit")) {
+         if (!hasPermission(user.role, "edit")) {
+             return new Response(JSON.stringify({ error: "Permission denied: Cannot edit data" }), { status: 403 });
+         }
+    }
+    if (action.includes("delete")) {
+         if (!hasPermission(user.role, "delete")) {
+             return new Response(JSON.stringify({ error: "Permission denied: Cannot delete data" }), { status: 403 });
+         }
+    }
 
     const targetIds = ids || (id ? [id] : []);
     if (targetIds.length === 0 && !data) {

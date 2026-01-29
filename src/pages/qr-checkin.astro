@@ -2,8 +2,13 @@
 import Layout from "../layouts/Layout.astro";
 import { WEDDING_CONFIG } from "../constants";
 
-const guestName = Astro.url.searchParams.get("guest") || "Tamu";
+const rawGuestName = Astro.url.searchParams.get("guest") || "Tamu";
 const guestSlug = Astro.url.searchParams.get("slug") || "";
+
+// Format Guest Name (Title Case & Remove Dashes)
+const guestName = rawGuestName
+  .replace(/-/g, " ")
+  .replace(/\b\w/g, (char) => char.toUpperCase());
 ---
 
 <Layout title={`QR Check-in - ${guestName}`}>
@@ -28,13 +33,13 @@ const guestSlug = Astro.url.searchParams.get("slug") || "";
           <!-- Title -->
           <div class="space-y-2">
             <div class="flex items-center justify-center gap-3">
-              <div class="h-[1px] w-12 bg-white/30"></div>
-              <span class="tracking-luxury text-[10px] font-light text-white/80 uppercase">
+              <div class="h-[1px] w-12 bg-slate-900/30 dark:bg-white/30"></div>
+              <span class="tracking-luxury text-[10px] font-light text-slate-900/80 dark:text-white/80 uppercase">
                 QR Check-in
               </span>
-              <div class="h-[1px] w-12 bg-white/30"></div>
+              <div class="h-[1px] w-12 bg-slate-900/30 dark:bg-white/30"></div>
             </div>
-            <h1 class="font-serif text-3xl md:text-4xl font-bold text-white italic">
+            <h1 class="font-script text-4xl md:text-6xl font-normal text-slate-900 dark:text-white">
               {guestName}
             </h1>
           </div>
@@ -45,11 +50,11 @@ const guestSlug = Astro.url.searchParams.get("slug") || "";
           </div>
 
           <!-- Instructions -->
-          <div class="space-y-2 rounded-xl bg-white/10 backdrop-blur-sm p-4 border border-white/20">
-            <p class="text-sm font-semibold text-white">
+          <div class="space-y-2 rounded-xl bg-white/50 dark:bg-white/10 backdrop-blur-sm p-4 border border-slate-900/10 dark:border-white/20">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">
               📱 Tunjukkan QR ini saat check-in
             </p>
-            <p class="text-xs text-white/70">
+            <p class="text-xs text-slate-600 dark:text-white/70">
               Simpan screenshot atau tunjukkan langsung dari halaman ini kepada panitia di lokasi acara
             </p>
           </div>
@@ -67,7 +72,7 @@ const guestSlug = Astro.url.searchParams.get("slug") || "";
             </button>
             <button
               onclick="window.close()"
-              class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-sm px-6 py-3 font-semibold text-white shadow-lg transition-all hover:bg-white/30 active:scale-95 border border-white/30"
+              class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/50 dark:bg-white/20 backdrop-blur-sm px-6 py-3 font-semibold text-slate-900 dark:text-white shadow-lg transition-all hover:bg-white/60 dark:hover:bg-white/30 active:scale-95 border border-slate-900/10 dark:border-white/30"
             >
               Tutup
             </button>

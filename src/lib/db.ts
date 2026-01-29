@@ -63,6 +63,19 @@ db.exec(`
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES admin_users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS gallery (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_url TEXT NOT NULL,
+    caption TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 export const getDbPath = () => DB_FILE;

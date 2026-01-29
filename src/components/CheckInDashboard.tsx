@@ -24,7 +24,11 @@ interface CheckInStats {
   }>;
 }
 
-const CheckInDashboard: React.FC = () => {
+interface CheckInDashboardProps {
+  currentUserRole?: string;
+}
+
+const CheckInDashboard: React.FC<CheckInDashboardProps> = ({ currentUserRole }) => {
   const [stats, setStats] = useState<CheckInStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
@@ -206,6 +210,7 @@ const CheckInDashboard: React.FC = () => {
       </div>
 
       {/* Action Button */}
+      {currentUserRole !== "viewer" && (
       <div className="flex justify-center">
         <button
           onClick={() => setShowScanner(true)}
@@ -215,6 +220,7 @@ const CheckInDashboard: React.FC = () => {
           Scan QR Code Tamu
         </button>
       </div>
+      )}
 
       {/* Check-in Message */}
       {checkInMessage && (

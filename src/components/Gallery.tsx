@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   X,
   ChevronLeft,
@@ -8,7 +8,18 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { GALLERY_IMAGES } from "../constants";
+import { WeddingContext } from "../App";
+
 const Gallery: React.FC = () => {
+  const { gallery } = useContext(WeddingContext);
+  
+  const images = React.useMemo(() => {
+    if (Array.isArray(gallery) && gallery.length > 0) {
+        return gallery.map((g: any) => g.image_url).filter(Boolean);
+    }
+    return GALLERY_IMAGES;
+  }, [gallery]);
+
   const [selectedImg, setSelectedImg] = useState<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
   const openLightbox = (index: number) => {
@@ -29,11 +40,11 @@ const Gallery: React.FC = () => {
     if (selectedImg === null) return;
     if (direction === "prev") {
       setSelectedImg(
-        selectedImg === 0 ? GALLERY_IMAGES.length - 1 : selectedImg - 1
+        selectedImg === 0 ? images.length - 1 : selectedImg - 1
       );
     } else {
       setSelectedImg(
-        selectedImg === GALLERY_IMAGES.length - 1 ? 0 : selectedImg + 1
+        selectedImg === images.length - 1 ? 0 : selectedImg + 1
       );
     }
   };
@@ -46,7 +57,13 @@ const Gallery: React.FC = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImg]);
+  }, [selectedImg, images]); // Added images dependency implicitly via navigate logic requirement, but safely dependent on selectedImg state mainly.
+  // Ideally navigate should be wrapped in useCallback if included, but simpler here:
+  // Since navigate relies on images and selectedImg, we need to be careful.
+  // The original code only had [selectedImg]. 
+  // Let's stick to safe behavior: re-bind when selectedImg changes.
+  // But to fix stale closure over 'images', we should include it if we want perfect correctness.
+  // However, forcing re-bind on images change is fine.
   return (
     <section
       id="gallery"
@@ -67,7 +84,7 @@ const Gallery: React.FC = () => {
           </p>
         </div>
         <div className="columns-1 gap-6 space-y-6 sm:columns-2 md:gap-10 md:space-y-10 lg:columns-3">
-          {GALLERY_IMAGES.map((src, index) => (
+          {images.map((src, index) => (
             <div
               key={index}
               className="group hover:shadow-accent/20 dark:bg-darkSurface relative cursor-pointer overflow-hidden rounded-[2rem] border border-slate-100 bg-slate-50 shadow-xl transition-all duration-700 hover:-translate-y-3 md:rounded-[3.5rem] dark:border-white/5"
@@ -79,10 +96,13 @@ const Gallery: React.FC = () => {
                 className="h-auto w-full transform object-cover grayscale-[0.2] transition-transform duration-[1.5s] ease-out group-hover:scale-105 group-hover:grayscale-0"
                 loading="lazy"
               />
-              <div className="bg-primary/10 dark:bg-darkBg/40 absolute inset-0 flex items-center justify-center opacity-0 backdrop-blur-[1px] transition-opacity duration-500 group-hover:opacity-100">
-                <div className="flex h-14 w-14 scale-75 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-2xl transition-transform duration-500 group-hover:scale-100 md:h-20 md:w-20">
+              <div className="bg-primary/10 dark:bg-darkBg/40 absolute inset-0 flex flex-col gap-4 items-center justify-center opacity-0 backdrop-blur-[1px] transition-opacity duration-500 group-hover:opacity-100">
+                <div className="flex h-14 w-14 scale-75 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-2xl transition-transform duration-500 group-hover:scale-100 md:h-16 md:w-16">
                   <Maximize2 className="h-6 w-6 text-white md:h-8 md:w-8" />
                 </div>
+                <p className="font-serif text-sm font-medium tracking-widest text-white uppercase translate-y-4 transition-transform duration-500 group-hover:translate-y-0">
+                  Moment {index + 1}
+                </p>
               </div>
             </div>
           ))}
@@ -101,7 +121,7 @@ const Gallery: React.FC = () => {
           <div className="pointer-events-none relative z-[1010] flex h-full w-full items-center justify-center">
             <div className="relative flex max-h-[75vh] max-w-[95vw] items-center justify-center md:max-h-[85vh]">
               <img
-                src={GALLERY_IMAGES[selectedImg]}
+                src={images[selectedImg]}
                 alt="Lightbox Fullscreen"
                 className={`pointer-events-auto max-h-full max-w-full rounded-[1.5rem] border border-white/10 object-contain shadow-[0_60px_120px_rgba(0,0,0,0.9)] transition-all duration-700 md:rounded-[4rem] ${
                   isClosing
@@ -144,7 +164,7 @@ const Gallery: React.FC = () => {
                   <span className="text-accent font-sans font-black">
                     {selectedImg + 1}
                   </span>{" "}
-                  / {GALLERY_IMAGES.length}
+                  / {images.length}
                 </p>
                 <div className="h-[1px] w-6 bg-white/20 md:w-12"></div>
               </div>

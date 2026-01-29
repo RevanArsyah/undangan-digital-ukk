@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import db from "../../../lib/db";
 import { generateGuestSlug, ensureUniqueSlug } from "../../../utils/slugify";
+import { findUserById, hasPermission } from "../../../lib/auth"; // Import auth utils
+import type { AuthSession } from "../../../types";
 
 /**
  * GET /api/admin/guests
@@ -10,13 +12,16 @@ export const GET: APIRoute = async ({ url, request }) => {
   try {
     // Check admin authentication
     const cookie = request.headers.get("cookie");
-    if (!cookie?.includes("admin_session")) {
+    if (!cookie?.includes("wedding_admin_session")) { // Fixed cookie name
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
+    // ... existing GET logic ...
+    // Note: Assuming GET is allowed for all roles including viewer, so no extra check needed here if authenticated.
+    
     // Parse query parameters
     const category = url.searchParams.get("category");
     const hasRsvp = url.searchParams.get("has_rsvp");
@@ -105,19 +110,49 @@ export const GET: APIRoute = async ({ url, request }) => {
   }
 };
 
+// Helper to get user from request
+const getUserFromRequest = (request: Request) => {
+    const cookie = request.headers.get("cookie");
+    const sessionToken = cookie?.split('; ').find(row => row.startsWith('wedding_admin_session='))?.split('=')[1];
+    
+    if (!sessionToken) return null;
+    
+    try {
+        const session: AuthSession = JSON.parse(decodeURIComponent(sessionToken)); // basic parsing, actual implementation depends on how cookie is set
+        // In previous files it was JSON.parse(value) from Astro.cookies.get
+        // mimicking manual parsing here or better yet just trust the parsing logic if we can't use Astro's here easily without 'cookies' object
+        // Actually this file is APIRoute, it receives { cookies } object. Let's use that.
+        // But to keep diff small, I'll stick to manual logic or rely on the pattern used in POST/PUT/DELETE below.
+        return findUserById(session.userId);
+    } catch (e) {
+        return null;
+    }
+}
+
 /**
  * POST /api/admin/guests
  * Add new guest
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     // Check admin authentication
-    const cookie = request.headers.get("cookie");
-    if (!cookie?.includes("admin_session")) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+    const sessionCookie = cookies.get("wedding_admin_session")?.value;
+    if (!sessionCookie) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+    
+    let user;
+    try {
+        const session: AuthSession = JSON.parse(sessionCookie);
+        user = findUserById(session.userId);
+        if(!user) throw new Error("User not found");
+    } catch(e) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    // Check Permission
+    if (!hasPermission(user.role, "edit")) {
+        return new Response(JSON.stringify({ error: "Permission denied" }), { status: 403 });
     }
 
     const data = await request.json();
@@ -183,15 +218,26 @@ export const POST: APIRoute = async ({ request }) => {
  * PUT /api/admin/guests
  * Update guest (expects id in body)
  */
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
-    // Check admin authentication
-    const cookie = request.headers.get("cookie");
-    if (!cookie?.includes("admin_session")) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+     // Check admin authentication
+    const sessionCookie = cookies.get("wedding_admin_session")?.value;
+    if (!sessionCookie) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+    
+    let user;
+    try {
+        const session: AuthSession = JSON.parse(sessionCookie);
+        user = findUserById(session.userId);
+        if(!user) throw new Error("User not found");
+    } catch(e) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    // Check Permission
+    if (!hasPermission(user.role, "edit")) {
+        return new Response(JSON.stringify({ error: "Permission denied" }), { status: 403 });
     }
 
     const data = await request.json();
@@ -276,15 +322,26 @@ export const PUT: APIRoute = async ({ request }) => {
  * DELETE /api/admin/guests
  * Delete guest (expects id in body)
  */
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
     // Check admin authentication
-    const cookie = request.headers.get("cookie");
-    if (!cookie?.includes("admin_session")) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+    const sessionCookie = cookies.get("wedding_admin_session")?.value;
+    if (!sessionCookie) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+    
+    let user;
+    try {
+        const session: AuthSession = JSON.parse(sessionCookie);
+        user = findUserById(session.userId);
+        if(!user) throw new Error("User not found");
+    } catch(e) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    // Check Permission
+    if (!hasPermission(user.role, "delete")) {
+        return new Response(JSON.stringify({ error: "Permission denied" }), { status: 403 });
     }
 
     const data = await request.json();

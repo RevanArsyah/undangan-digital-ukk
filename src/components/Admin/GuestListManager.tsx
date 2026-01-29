@@ -27,7 +27,11 @@ interface Guest {
   created_at: string;
 }
 
-const GuestListManager: React.FC = () => {
+interface GuestListManagerProps {
+  currentUserRole?: string;
+}
+
+const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) => {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +49,9 @@ const GuestListManager: React.FC = () => {
     max_guests: 2,
     notes: "",
   });
+
+  const canEdit = currentUserRole !== "viewer";
+  const canDelete = currentUserRole !== "viewer";
 
   // QR Code refs for download
   const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
@@ -203,6 +210,7 @@ const GuestListManager: React.FC = () => {
             </p>
           </div>
         </div>
+        {canEdit && (
         <button
           onClick={() => {
             setEditingGuest(null);
@@ -214,6 +222,7 @@ const GuestListManager: React.FC = () => {
           <Plus className="h-5 w-5" />
           Add Guest
         </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -447,14 +456,14 @@ const GuestListManager: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
                       {guest.has_rsvp === 1 && (
-                        <CheckCircle className="h-4 w-4 text-green-600" title="Has RSVP" />
+                        <CheckCircle className="h-4 w-4 text-green-600" />
                       )}
                       {guest.qr_open_count > 0 ? (
                         <span className="text-xs text-blue-600" title={`Opened ${guest.qr_open_count} times`}>
                           👁️ {guest.qr_open_count}
                         </span>
                       ) : (
-                        <Clock className="h-4 w-4 text-slate-400" title="Not opened yet" />
+                        <Clock className="h-4 w-4 text-slate-400" />
                       )}
                     </div>
                   </td>
@@ -476,6 +485,7 @@ const GuestListManager: React.FC = () => {
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
+                      {canEdit && (
                       <button
                         onClick={() => handleEdit(guest)}
                         className="text-slate-600 hover:text-slate-700"
@@ -483,6 +493,8 @@ const GuestListManager: React.FC = () => {
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
+                      )}
+                      {canDelete && (
                       <button
                         onClick={() => handleDelete(guest.id)}
                         className="text-red-600 hover:text-red-700"
@@ -490,6 +502,7 @@ const GuestListManager: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
+                      )}
                     </div>
                   </td>
                 </tr>

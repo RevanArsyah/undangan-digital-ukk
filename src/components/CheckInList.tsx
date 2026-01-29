@@ -14,7 +14,11 @@ interface Guest {
   rsvp_status: string | null;
 }
 
-const CheckInList: React.FC = () => {
+interface CheckInListProps {
+  currentUserRole?: string;
+}
+
+const CheckInList: React.FC<CheckInListProps> = ({ currentUserRole }) => {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "checked_in" | "not_checked_in">(
@@ -150,15 +154,17 @@ const CheckInList: React.FC = () => {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   Waktu Check-in
                 </th>
+                {currentUserRole !== "viewer" && (
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   Aksi
                 </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredGuests.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={currentUserRole === "viewer" ? 4 : 5} className="px-4 py-8 text-center text-gray-500">
                     Tidak ada tamu ditemukan
                   </td>
                 </tr>
@@ -213,6 +219,7 @@ const CheckInList: React.FC = () => {
                         "-"
                       )}
                     </td>
+                    {currentUserRole !== "viewer" && (
                     <td className="px-4 py-3">
                       {!guest.checked_in_at && (
                         <button
@@ -225,6 +232,7 @@ const CheckInList: React.FC = () => {
                         </button>
                       )}
                     </td>
+                    )}
                   </tr>
                 ))
               )}

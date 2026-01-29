@@ -12,6 +12,7 @@
   /* Fonts */
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Outfit", sans-serif;
+  --font-script: "Great Vibes", cursive;
 
   /* Animations */
   --animate-subtle-zoom: subtleZoom 20s infinite alternate;
@@ -100,6 +101,10 @@
   h3,
   .font-serif {
     font-family: "Cormorant Garamond", serif;
+  }
+  
+  .font-script {
+    font-family: "Great Vibes", cursive;
   }
 }
 

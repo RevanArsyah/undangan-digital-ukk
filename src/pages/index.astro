@@ -1,8 +1,36 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import App from "../App";
+import db from "../lib/db";
+
+// Fetch Settings
+let siteSettings = {} as Record<string, string>;
+try {
+  const settingsStmt = db.prepare("SELECT key, value FROM site_settings");
+  const settingsRows = settingsStmt.all() as { key: string; value: string }[];
+  siteSettings = settingsRows.reduce((acc, row) => {
+    acc[row.key] = row.value;
+    return acc;
+  }, {} as Record<string, string>);
+} catch (e) {
+  console.error("Failed to fetch settings:", e);
+}
+
+// Fetch Gallery
+let galleryImages: any[] = [];
+try {
+  const galleryStmt = db.prepare("SELECT * FROM gallery ORDER BY created_at DESC");
+  galleryImages = galleryStmt.all();
+} catch(e) {
+  console.error("Failed to fetch gallery:", e);
+}
+
+// Default Title
+const brideName = siteSettings["bride.name"] || 'Fera';
+const groomName = siteSettings["groom.name"] || 'Yahya';
+const pageTitle = `The Wedding of ${brideName} & ${groomName}`;
 ---
 
-<Layout title="The Wedding of Fera & Yahya">
-  <App client:only="react" />
+<Layout title={pageTitle}>
+  <App client:only="react" initialSettings={siteSettings} initialGallery={galleryImages} />
 </Layout>

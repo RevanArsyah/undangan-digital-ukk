@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
 import db from "../../../../../lib/db";
+import { findUserById, hasPermission } from "../../../../../lib/auth";
+import type { AuthSession } from "../../../../../types";
 
 export const POST: APIRoute = async ({ params, request, cookies }) => {
   try {
@@ -10,6 +12,20 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    let user;
+    try {
+        const session: AuthSession = JSON.parse(sessionToken);
+        user = findUserById(session.userId);
+        if(!user) throw new Error("User not found");
+    } catch(e) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    // Check Permission
+    if (!hasPermission(user.role, "edit")) {
+        return new Response(JSON.stringify({ error: "Permission denied" }), { status: 403 });
     }
 
     const { id } = params;
@@ -32,9 +48,9 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
     const stmt = db.prepare(`
       UPDATE guest_invitations 
       SET checked_in_at = CURRENT_TIMESTAMP,
-          checked_in_by = ?,
-          check_in_notes = ?,
-          updated_at = CURRENT_TIMESTAMP
+      checked_in_by = ?,
+      check_in_notes = ?,
+      updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
 

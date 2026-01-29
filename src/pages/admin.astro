@@ -389,12 +389,13 @@ if (isAuthenticated) {
                   client:load
                   initialRsvps={rsvps}
                   initialWishes={wishes}
+                  currentUserRole={currentUser.role}
                 />
               </div>
 
               {/* GUEST LIST TAB */}
               <div id="content-guests" class="tab-content hidden">
-                <GuestListManager client:load />
+                <GuestListManager client:load currentUserRole={currentUser.role} />
               </div>
 
               {/* ANALYTICS TAB */}
@@ -409,12 +410,12 @@ if (isAuthenticated) {
 
               {/* CHECK-IN SCAN TAB */}
               <div id="content-checkin-scan" class="tab-content hidden">
-                <CheckInDashboard client:load />
+                <CheckInDashboard client:load currentUserRole={currentUser.role} />
               </div>
 
               {/* CHECK-IN LIST TAB */}
               <div id="content-checkin-list" class="tab-content hidden">
-                <CheckInList client:load />
+                <CheckInList client:load currentUserRole={currentUser.role} />
               </div>
 
               {/* USER MANAGEMENT TAB */}

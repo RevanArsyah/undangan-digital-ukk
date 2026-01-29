@@ -2,7 +2,7 @@ Table rsvps {
   id integer [pk, increment]
   guest_name text [not null]
   phone text
-  attendance text
+  attendance text [note: 'hadir, ragu, tidak']
   guest_count integer
   message text
   created_at text [default: `CURRENT_TIMESTAMP`]
@@ -30,7 +30,7 @@ Table admin_users {
 
 Table password_reset_tokens {
   id integer [pk, increment]
-  user_id integer [not null]
+  user_id integer [not null, ref: > admin_users.id]
   token text [not null, unique]
   expires_at text [not null]
   used integer [default: 0]
@@ -43,17 +43,20 @@ Table guest_invitations {
   guest_slug text [not null, unique]
   phone text
   email text
-  guest_category text
+  guest_category text [note: 'keluarga, teman, kantor, lainnya']
   max_guests integer [default: 2]
   qr_opened_at text
   qr_open_count integer [default: 0]
   last_opened_at text
   has_rsvp integer [default: 0]
-  rsvp_id integer
+  rsvp_id integer [ref: > rsvps.id]
   is_sent integer [default: 0]
   sent_at text
   sent_via text
   notes text
+  checked_in_at text
+  checked_in_by text
+  check_in_notes text
   created_at text [default: `CURRENT_TIMESTAMP`]
   updated_at text [default: `CURRENT_TIMESTAMP`]
   
@@ -63,11 +66,9 @@ Table guest_invitations {
     has_rsvp [name: 'idx_guest_has_rsvp']
     is_sent [name: 'idx_guest_is_sent']
     created_at [name: 'idx_guest_created_at']
+    checked_in_at [name: 'idx_checked_in_at']
   }
 }
-
-Ref: password_reset_tokens.user_id > admin_users.id [delete: cascade]
-Ref: guest_invitations.rsvp_id > rsvps.id [delete: set null]
 
 Enum attendance_status {
   hadir

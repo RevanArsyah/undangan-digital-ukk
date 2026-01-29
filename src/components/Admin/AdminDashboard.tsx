@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
@@ -12,8 +13,12 @@ import {
   Save,
   Loader2,
   X,
+  Settings,
+  Image as ImageIcon,
 } from "lucide-react";
 import InvitationManager from "../InvitationManager";
+import GalleryListManager from "./GalleryListManager";
+import WeddingSettings from "./WeddingSettings";
 
 // --- TYPES ---
 interface RSVP {
@@ -285,13 +290,13 @@ const DataTable = <T extends { id: number }>({
 const AdminDashboard = ({
   initialRsvps,
   initialWishes,
+  currentUserRole,
 }: {
   initialRsvps: RSVP[];
   initialWishes: Wish[];
+  currentUserRole?: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<"rsvp" | "wishes" | "pdf">(
-    "rsvp"
-  );
+  const [activeTab, setActiveTab] = useState<"rsvp" | "wishes" | "pdf" | "gallery" | "settings">("rsvp");
 
   // Data States
   const [rsvps, setRsvps] = useState(initialRsvps);
@@ -304,6 +309,10 @@ const AdminDashboard = ({
   // Edit Modal State
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Check permissions
+  const canEdit = currentUserRole !== "viewer";
+  const canDelete = currentUserRole !== "viewer";
 
   // --- GENERIC DELETE HANDLER ---
   const handleDelete = async (type: "rsvp" | "wish", ids: number[]) => {
@@ -374,6 +383,8 @@ const AdminDashboard = ({
   const tabs = [
     { id: "rsvp", label: "Data RSVP", icon: Users },
     { id: "wishes", label: "Ucapan & Doa", icon: MessageCircle },
+    { id: "gallery", label: "Gallery Manager", icon: ImageIcon },
+    { id: "settings", label: "Wedding Settings", icon: Settings },
     { id: "pdf", label: "Design PDF", icon: Printer },
   ];
 
@@ -460,12 +471,16 @@ const AdminDashboard = ({
                   new Date(item.created_at).toLocaleDateString("id-ID"),
               },
             ]}
-            onEdit={(item) => {
-              setEditingItem(item);
-              setIsModalOpen(true);
-            }}
-            onDelete={(id) => handleDelete("rsvp", [id])}
-            onBulkDelete={(ids) => handleDelete("rsvp", ids)}
+            onEdit={
+              canEdit
+                ? (item) => {
+                    setEditingItem(item);
+                    setIsModalOpen(true);
+                  }
+                : undefined
+            }
+            onDelete={canDelete ? (id) => handleDelete("rsvp", [id]) : undefined}
+            onBulkDelete={canDelete ? (ids) => handleDelete("rsvp", ids) : undefined}
           />
         </div>
       )}
@@ -504,16 +519,33 @@ const AdminDashboard = ({
                   new Date(item.created_at).toLocaleDateString("id-ID"),
               },
             ]}
-            onEdit={(item) => {
-              setEditingItem(item);
-              setIsModalOpen(true);
-            }}
-            onDelete={(id) => handleDelete("wish", [id])}
-            onBulkDelete={(ids) => handleDelete("wish", ids)}
+            onEdit={
+              canEdit
+                ? (item) => {
+                    setEditingItem(item);
+                    setIsModalOpen(true);
+                  }
+                : undefined
+            }
+            onDelete={canDelete ? (id) => handleDelete("wish", [id]) : undefined}
+            onBulkDelete={canDelete ? (ids) => handleDelete("wish", ids) : undefined}
           />
         </div>
       )}
 
+      {/* --- TAB: GALLERY --- */}
+      {activeTab === "gallery" && (
+        <div className="animate-reveal rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <GalleryListManager />
+        </div>
+      )}
+
+      {/* --- TAB: SETTINGS --- */}
+      {activeTab === "settings" && (
+        <div className="animate-reveal rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <WeddingSettings />
+        </div>
+      )}
 
       {/* --- TAB: PDF --- */}
       {activeTab === "pdf" && (
@@ -584,7 +616,7 @@ const AdminDashboard = ({
                         defaultValue={editingItem.guest_count}
                         min={1}
                         className="w-full rounded-lg border p-2 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                      />
+                        />
                     </div>
                   </div>
                   <div className="space-y-1">

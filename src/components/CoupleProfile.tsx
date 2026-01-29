@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Instagram, Heart } from "lucide-react";
-import { WEDDING_CONFIG, WEDDING_TEXT } from "../constants";
+import { WeddingContext } from "../App";
+
 const CoupleProfile: React.FC = () => {
-  const { bride, groom } = WEDDING_CONFIG.couple;
+  const { config, text } = useContext(WeddingContext);
+  const { bride, groom } = config.couple;
   return (
     <section
       id="couple"
@@ -16,7 +18,7 @@ const CoupleProfile: React.FC = () => {
           </h2> */}
           {/* Salam Pembuka */}
           <span className="text-accentDark dark:text-accent font-serif text-lg italic">
-            {WEDDING_TEXT.opening.salam}
+            {text.opening.salam}
           </span>
 
           <h2 className="font-serif text-4xl tracking-tight text-slate-900 italic md:text-7xl dark:text-white">
@@ -30,12 +32,12 @@ const CoupleProfile: React.FC = () => {
           </p> */}
           {/* Ayat Ar-Rum */}
           <p className="mx-auto max-w-3xl text-lg leading-relaxed font-light text-balance text-slate-600 italic md:text-xl dark:text-slate-300">
-            {WEDDING_TEXT.quote.ar_rum}
+            {text.quote.ar_rum}
           </p>
 
           {/* Sumber Ayat */}
           <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-            {WEDDING_TEXT.quote.source}
+            {text.quote.source}
           </p>
         </div>
         <div className="grid items-start gap-20 md:grid-cols-2 md:gap-24">
