@@ -1,6 +1,12 @@
 
 import React, { useState, useEffect } from "react";
-import { Save, Loader2, Upload } from "lucide-react";
+import { Save, Loader2, Upload, Trash2, Plus } from "lucide-react";
+
+interface BankAccount {
+  bank: string;
+  number: string;
+  name: string;
+}
 
 const SETTINGS_KEYS = {
   // Groom
@@ -36,6 +42,7 @@ const WeddingSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -46,6 +53,13 @@ const WeddingSettings: React.FC = () => {
       const res = await fetch("/api/admin/settings");
       const data = await res.json();
       setSettings(data);
+      if (data.bank_accounts) {
+        try {
+          setBankAccounts(JSON.parse(data.bank_accounts));
+        } catch (e) {
+          console.error("Failed to parse bank accounts");
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch settings");
     } finally {
@@ -60,10 +74,11 @@ const WeddingSettings: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = { ...settings, bank_accounts: JSON.stringify(bankAccounts) };
       await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
       alert("Settings saved!");
     } catch (error) {
@@ -91,6 +106,20 @@ const WeddingSettings: React.FC = () => {
     } finally {
       setUploadingKey(null);
     }
+  };
+
+  const addBankAccount = () => {
+    setBankAccounts([...bankAccounts, { bank: "", number: "", name: "" }]);
+  };
+
+  const removeBankAccount = (index: number) => {
+    setBankAccounts(bankAccounts.filter((_, i) => i !== index));
+  };
+
+  const updateBankAccount = (index: number, field: keyof BankAccount, value: string) => {
+    const newAccounts = [...bankAccounts];
+    newAccounts[index] = { ...newAccounts[index], [field]: value };
+    setBankAccounts(newAccounts);
   };
 
   if (loading) return <div>Loading...</div>;
@@ -267,6 +296,71 @@ const WeddingSettings: React.FC = () => {
                           />
                       </div>
                   ))}
+                </div>
+            </div>
+
+            {/* Bank Accounts Section */}
+            <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2">
+                <div className="flex items-center justify-between border-b pb-4">
+                    <h3 className="font-serif text-xl font-bold text-slate-900">Tanda Kasih (Rekening & E-Wallet)</h3>
+                    <button
+                        onClick={addBankAccount}
+                        className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Tambah Rekening
+                    </button>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                    {bankAccounts.map((account, index) => (
+                        <div key={index} className="relative rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <button
+                                onClick={() => removeBankAccount(index)}
+                                className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                            <div className="space-y-3 pr-6">
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Bank / E-Wallet</label>
+                                    <input
+                                        type="text"
+                                        value={account.bank}
+                                        onChange={(e) => updateBankAccount(index, "bank", e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-accent focus:outline-none"
+                                        placeholder="Contoh: BCA / GoPay"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Nomor Rekening</label>
+                                    <input
+                                        type="text"
+                                        value={account.number}
+                                        onChange={(e) => updateBankAccount(index, "number", e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-accent focus:outline-none"
+                                        placeholder="1234567890"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Atas Nama</label>
+                                    <input
+                                        type="text"
+                                        value={account.name}
+                                        onChange={(e) => updateBankAccount(index, "name", e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-accent focus:outline-none"
+                                        placeholder="Nama Pemilik"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {bankAccounts.length === 0 && (
+                        <div className="col-span-full flex flex-col items-center justify-center p-8 text-slate-400 border border-dashed rounded-xl">
+                            <p className="text-sm">Belum ada rekening yang ditambahkan</p>
+                            <button onClick={addBankAccount} className="mt-2 text-xs text-accentDark font-bold hover:underline">Tambah Sekarang</button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -13,7 +13,7 @@ import FloatingPetals from "./components/FloatingPetals";
 import Envelope from "./components/Envelope";
 import { Heart, Quote, ChevronUp } from "lucide-react";
 import { dbService } from "./services/dbService";
-import { WEDDING_CONFIG, WEDDING_TEXT } from "./constants";
+import { WEDDING_CONFIG, WEDDING_TEXT, BANK_ACCOUNTS } from "./constants";
 import InstallPrompt from "./components/InstallPrompt";
 import Footer from "./components/Footer";
 
@@ -27,11 +27,13 @@ export const WeddingContext = React.createContext<{
   gallery: any[];
   config: typeof WEDDING_CONFIG;
   text: typeof WEDDING_TEXT;
+  bankAccounts: typeof import("./constants").BANK_ACCOUNTS;
 }>({
   settings: {},
   gallery: [],
   config: WEDDING_CONFIG,
   text: WEDDING_TEXT,
+  bankAccounts: [],
 });
 
 const App: React.FC<AppProps> = ({ initialSettings = {}, initialGallery = [] }) => {
@@ -129,6 +131,18 @@ const App: React.FC<AppProps> = ({ initialSettings = {}, initialGallery = [] }) 
      return text;
   }, [initialSettings]);
 
+  const dynamicBankAccounts = React.useMemo(() => {
+    if (initialSettings["bank_accounts"]) {
+      try {
+        return JSON.parse(initialSettings["bank_accounts"]);
+      } catch (e) {
+        console.error("Failed to parse bank_accounts setting", e);
+        return BANK_ACCOUNTS;
+      }
+    }
+    return BANK_ACCOUNTS;
+  }, [initialSettings]);
+
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme") as "light" | "dark";
@@ -213,7 +227,7 @@ const App: React.FC<AppProps> = ({ initialSettings = {}, initialGallery = [] }) 
   })();
 
   return (
-    <WeddingContext.Provider value={{ settings: initialSettings, gallery: initialGallery, config: dynamicConfig, text: dynamicText }}>
+    <WeddingContext.Provider value={{ settings: initialSettings, gallery: initialGallery, config: dynamicConfig, text: dynamicText, bankAccounts: dynamicBankAccounts }}>
       <div className="selection:bg-accent/30 selection:text-primary relative min-h-screen overflow-x-hidden">
         {!isOpened && <Envelope onOpen={handleOpenInvitation} />}
 

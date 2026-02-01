@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { Gift, Copy, Check, MapPin, CreditCard, Sparkles } from "lucide-react";
-import { BANK_ACCOUNTS, WEDDING_CONFIG, WEDDING_TEXT } from "../constants";
+import { Gift, Copy, Check, CreditCard } from "lucide-react";
+import { WEDDING_CONFIG, WEDDING_TEXT } from "../constants";
+import { WeddingContext } from "../App";
+import { useContext } from "react";
 const GiftInfo: React.FC = () => {
+  const { bankAccounts } = useContext(WeddingContext);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -39,7 +42,7 @@ const GiftInfo: React.FC = () => {
           </p> */}
         </div>
         <div className="mb-10 grid grid-cols-1 gap-5 md:mb-20 md:grid-cols-2 md:gap-14">
-          {BANK_ACCOUNTS.map((acc, idx) => (
+          {bankAccounts.map((acc, idx) => (
             <div
               key={idx}
               className="editorial-card group relative space-y-6 overflow-hidden rounded-[1.5rem] border border-slate-100 p-8 shadow-sm transition-all hover:shadow-lg md:space-y-12 md:rounded-[4.5rem] md:p-20 dark:border-white/5"
@@ -79,40 +82,7 @@ const GiftInfo: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className="editorial-card group relative flex flex-col items-center gap-6 overflow-hidden rounded-[1.5rem] border border-slate-100 p-6 text-center shadow-md transition-all duration-1000 md:flex-row md:gap-14 md:rounded-[5rem] md:p-20 md:text-left dark:border-white/5">
-          <div className="from-accent/5 absolute inset-0 bg-gradient-to-r to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-          <div className="text-accentDark dark:text-accent animate-float flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border border-slate-100 bg-slate-50 shadow-sm md:h-28 md:w-28 dark:border-white/10 dark:bg-white/5">
-            <MapPin className="h-6 w-6 md:h-12 md:w-12" />
-          </div>
-          <div className="relative z-10 flex-grow space-y-1.5 md:space-y-4">
-            <div className="text-accentDark dark:text-accent flex items-center justify-center gap-2.5 md:justify-start">
-              <Sparkles className="h-3.5 w-3.5 md:h-5 md:w-5" />
-              <h4 className="font-serif text-xl tracking-tight italic md:text-5xl">
-                Kirim Kado Fisik
-              </h4>
-            </div>
-            <p className="text-sm leading-relaxed font-light text-balance text-slate-500 italic md:text-2xl dark:text-slate-400">
-              {WEDDING_CONFIG.venue.address}
-            </p>
-          </div>
-          <button
-            onClick={() =>
-              copyToClipboard(WEDDING_CONFIG.venue.address, "address-gift")
-            }
-            className={`tracking-luxury relative z-10 inline-flex w-full items-center justify-center gap-3 rounded-xl px-8 py-3.5 text-[9px] font-bold uppercase shadow-md transition-all md:w-auto md:rounded-[2.5rem] md:px-14 md:py-6 md:text-[12px] ${
-              copiedId === "address-gift"
-                ? "bg-green-500 text-white"
-                : "bg-primary dark:text-primary text-white active:scale-95 dark:bg-white"
-            }`}
-          >
-            {copiedId === "address-gift" ? (
-              <Check className="h-4 w-4 md:h-6 md:w-6" />
-            ) : (
-              <Copy className="h-4 w-4 md:h-6 md:w-6" />
-            )}
-            Salin Alamat
-          </button>
-        </div>
+
       </div>
     </section>
   );
