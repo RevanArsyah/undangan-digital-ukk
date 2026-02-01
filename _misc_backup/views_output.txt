@@ -1,0 +1,25 @@
+﻿Views found: 2
+
+--- View: v_guest_stats ---
+CREATE VIEW v_guest_stats AS
+SELECT 
+  guest_category,
+  COUNT(*) as total_invitations,
+  SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as opened_count,
+  SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as rsvp_count,
+  SUM(CASE WHEN is_sent = 1 THEN 1 ELSE 0 END) as sent_count,
+  ROUND(AVG(qr_open_count), 2) as avg_open_count
+FROM guest_invitations
+GROUP BY guest_category
+
+--- View: v_guest_summary ---
+CREATE VIEW v_guest_summary AS
+SELECT 
+  COUNT(*) as total_invitations,
+  SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) as total_opened,
+  SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) as total_rsvp,
+  SUM(CASE WHEN is_sent = 1 THEN 1 ELSE 0 END) as total_sent,
+  SUM(CASE WHEN qr_open_count = 0 THEN 1 ELSE 0 END) as total_not_opened,
+  ROUND(CAST(SUM(CASE WHEN qr_open_count > 0 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as opened_percentage,
+  ROUND(CAST(SUM(CASE WHEN has_rsvp = 1 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as rsvp_percentage
+FROM guest_invitations

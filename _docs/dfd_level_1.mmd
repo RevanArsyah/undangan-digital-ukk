@@ -1,0 +1,69 @@
+flowchart TD
+    %% Entities
+    Admin["Admin"]
+    Guest["Tamu Undangan"]
+    Telegram["Telegram"]
+
+    %% Processes
+    P1(("1.0 Authentication"))
+    P2(("2.0 Guest Management"))
+    P3(("3.0 RSVP & Wishes"))
+    P4(("4.0 Check-in System"))
+    P5(("5.0 Settings & Upload"))
+    P6(("6.0 Reporting"))
+
+    %% Data Stores
+    D1[("D1 Users")]
+    D2[("D2 Guest Invitations")]
+    D3[("D3 RSVPs")]
+    D4[("D4 Wishes")]
+    D5[("D5 FileSystem")]
+
+    %% Process 1.0: Auth
+    Admin -- "Username/Password" --> P1
+    P1 <-->| "Verify Credential" | D1
+    P1 -- "Session Token" --> Admin
+
+    %% Process 2.0: Guest Mgmt
+    Admin -- "Input/Edit Data Tamu" --> P2
+    P2 <-->| "Read/Write Guest Data" | D2
+    P2 -- "Generate QR Code" --> Admin
+
+    %% Process 3.0: RSVP
+    Guest -- "Submit RSVP & Wish" --> P3
+    P3 -- "Insert RSVP" --> D3
+    P3 -- "Update Status (has_rsvp)" --> D2
+    P3 -- "Insert Wish" --> D4
+    P3 -- "Send Notification" --> Telegram
+
+    %% Process 4.0: Check-in
+    Admin -- "Scan QR CODE" --> P4
+    P4 -- "Validate Slug" --> D2
+    P4 -- "Update Check-in Time" --> D2
+    P4 -- "Status Valid/Invalid" --> Admin
+
+    %% Process 5.0: Settings
+    Admin -- "Upload Image" --> P5
+    P5 -- "Write File" --> D5
+    P5 -- "Return Image URL" --> Admin
+    Admin -- "Update Config" --> P5
+    P5 -- "Save Config" --> D1
+
+    %% Process 6.0: Report
+    Admin -- "Request Excel" --> P6
+    D2 -- "Load Guest Data" --> P6
+    D3 -- "Load RSVP Data" --> P6
+    P6 -- "Download File" --> Admin
+
+    %% Styling 
+    style P1 fill:#fff9c4,stroke:#fbc02d
+    style P2 fill:#fff9c4,stroke:#fbc02d
+    style P3 fill:#fff9c4,stroke:#fbc02d
+    style P4 fill:#fff9c4,stroke:#fbc02d
+    style P5 fill:#fff9c4,stroke:#fbc02d
+    style P6 fill:#fff9c4,stroke:#fbc02d
+    style D1 fill:#f5f5f5,stroke:#616161
+    style D2 fill:#f5f5f5,stroke:#616161
+    style D3 fill:#f5f5f5,stroke:#616161
+    style D4 fill:#f5f5f5,stroke:#616161
+    style D5 fill:#f5f5f5,stroke:#616161

@@ -1,0 +1,25 @@
+flowchart TD
+    %% Entities
+    Admin["Admin / Mempelai"]
+    Guest["Tamu Undangan"]
+    Telegram["Telegram Service"]
+
+    %% System Process
+    System(("Sistem Undangan Digital"))
+
+    %% Data Flows - Admin
+    Admin -- "Login Info, Data Tamu, Settings" --> System
+    System -- "Dashboard Stats, Laporan, QR Code" --> Admin
+
+    %% Data Flows - Guest
+    Guest -- "Akses Undangan, RSVP, Ucapan" --> System
+    System -- "Undangan Digital, Konfirmasi RSVP" --> Guest
+
+    %% Data Flows - Telegram
+    System -- "Notifikasi RSVP Real-time" --> Telegram
+
+    %% Styling
+    style Admin fill:#e1f5fe,stroke:#01579b
+    style Guest fill:#e1f5fe,stroke:#01579b
+    style Telegram fill:#e0f7fa,stroke:#006064
+    style System fill:#fff9c4,stroke:#fbc02d,stroke-width:2px

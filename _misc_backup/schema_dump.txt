@@ -1,0 +1,104 @@
+﻿Tables: [
+  'rsvps',
+  'sqlite_sequence',
+  'wishes',
+  'admin_users',
+  'password_reset_tokens',
+  'guest_invitations',
+  'gallery',
+  'site_settings'
+]
+
+--- Schema for rsvps ---
+CREATE TABLE rsvps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_name TEXT NOT NULL,
+    phone TEXT,
+    attendance TEXT,
+    guest_count INTEGER,
+    message TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+
+--- Schema for sqlite_sequence ---
+CREATE TABLE sqlite_sequence(name,seq)
+
+--- Schema for wishes ---
+CREATE TABLE wishes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+
+--- Schema for admin_users ---
+CREATE TABLE admin_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    full_name TEXT,
+    email TEXT,
+    role TEXT DEFAULT 'admin',
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    last_login TEXT
+  )
+
+--- Schema for password_reset_tokens ---
+CREATE TABLE password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES admin_users(id)
+  )
+
+--- Schema for guest_invitations ---
+CREATE TABLE guest_invitations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  
+  -- Guest Info
+  guest_name TEXT NOT NULL,
+  guest_slug TEXT UNIQUE NOT NULL,
+  phone TEXT,
+  email TEXT,
+  guest_category TEXT CHECK(guest_category IN ('keluarga', 'teman', 'kantor', 'lainnya')),
+  max_guests INTEGER DEFAULT 2 CHECK(max_guests >= 1 AND max_guests <= 20),
+  
+  -- Tracking
+  qr_opened_at TEXT,
+  qr_open_count INTEGER DEFAULT 0,
+  last_opened_at TEXT,
+  has_rsvp INTEGER DEFAULT 0 CHECK(has_rsvp IN (0, 1)),
+  rsvp_id INTEGER,
+  
+  -- Sending Status
+  is_sent INTEGER DEFAULT 0 CHECK(is_sent IN (0, 1)),
+  sent_at TEXT,
+  sent_via TEXT,
+  
+  -- Metadata
+  notes TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP, checked_in_at TEXT, checked_in_by TEXT, check_in_notes TEXT,
+  
+  FOREIGN KEY (rsvp_id) REFERENCES rsvps(id) ON DELETE SET NULL
+)
+
+--- Schema for gallery ---
+CREATE TABLE gallery (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_url TEXT NOT NULL,
+    caption TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+
+--- Schema for site_settings ---
+CREATE TABLE site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
