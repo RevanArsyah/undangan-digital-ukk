@@ -3,6 +3,7 @@ import db from "../../../lib/db";
 import { generateGuestSlug, ensureUniqueSlug } from "../../../utils/slugify";
 import { findUserById, hasPermission } from "../../../lib/auth"; // Import auth utils
 import type { AuthSession } from "../../../types";
+import { MAX_GUESTS } from "../../../constants";
 
 /**
  * GET /api/admin/guests
@@ -190,7 +191,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       phone || null,
       email || null,
       guest_category || "lainnya",
-      max_guests || 2,
+      max_guests || MAX_GUESTS,
       notes || null
     );
 

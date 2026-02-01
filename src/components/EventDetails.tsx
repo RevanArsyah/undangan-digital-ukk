@@ -11,9 +11,11 @@ import {
   Sparkles,
   Heart,
 } from "lucide-react";
-import { WEDDING_CONFIG, WEDDING_TEXT } from "../constants";
+import { useContext } from "react";
+import { WeddingContext } from "../App";
 import { generateGoogleCalendarUrl, downloadICS } from "../utils/calendarUtils";
 const EventDetails: React.FC = () => {
+  const { config: WEDDING_CONFIG, text: WEDDING_TEXT } = useContext(WeddingContext);
   const [copied, setCopied] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<
     "akad" | "resepsi" | null

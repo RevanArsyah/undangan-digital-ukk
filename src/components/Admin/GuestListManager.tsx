@@ -46,7 +46,7 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
     phone: "",
     email: "",
     guest_category: "lainnya",
-    max_guests: 2,
+
     notes: "",
   });
 
@@ -148,7 +148,6 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
       phone: guest.phone || "",
       email: guest.email || "",
       guest_category: guest.guest_category,
-      max_guests: guest.max_guests,
       notes: "",
     });
     setShowForm(true);
@@ -160,7 +159,6 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
       phone: "",
       email: "",
       guest_category: "lainnya",
-      max_guests: 2,
       notes: "",
     });
   };
@@ -320,7 +318,7 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-1">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Category
@@ -339,24 +337,6 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Max Guests
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.max_guests}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        max_guests: parseInt(e.target.value),
-                      })
-                    }
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </div>
               </div>
 
               <div className="flex gap-3">
@@ -398,9 +378,6 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
                 Category
               </th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Max
-              </th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Status
               </th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -411,13 +388,13 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                   Loading...
                 </td>
               </tr>
             ) : filteredGuests.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                   No guests found
                 </td>
               </tr>
@@ -449,9 +426,6 @@ const GuestListManager: React.FC<GuestListManagerProps> = ({ currentUserRole }) 
                     >
                       {guest.guest_category}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-center text-sm text-slate-600 dark:text-slate-400">
-                    {guest.max_guests}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">

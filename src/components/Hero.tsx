@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { ChevronDown, Sparkles } from "lucide-react";
-import { WEDDING_CONFIG } from "../constants";
+import { WeddingContext } from "../App";
 
 const Hero: React.FC = () => {
+    const { config: WEDDING_CONFIG } = useContext(WeddingContext);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -30,8 +31,9 @@ const Hero: React.FC = () => {
         });
       }
     }, 1000);
+
     return () => clearInterval(timer);
-  }, []);
+  }, [WEDDING_CONFIG]);
 
   const handleScrollToContent = () => {
     document.getElementById("couple")?.scrollIntoView({ behavior: "smooth" });

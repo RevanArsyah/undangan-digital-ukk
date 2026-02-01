@@ -15,6 +15,20 @@ const SETTINGS_KEYS = {
   "bride.parents": "Nama Orang Tua Wanita",
   "bride.instagram": "Instagram Wanita",
   "bride.image": "Foto Wanita (URL)",
+  // Venue
+  "venue.name": "Nama Lokasi (Gedung/Hotel)",
+  "venue.address": "Alamat Lengkap",
+  "venue.mapUrl": "Link Google Maps",
+  // Akad
+  "akad.title": "Judul Acara 1 (Akad)",
+  "akad.date": "Tanggal Akad",
+  "akad.startTime": "Jam Mulai Akad",
+  "akad.endTime": "Jam Selesai Akad",
+  // Resepsi
+  "resepsi.title": "Judul Acara 2 (Resepsi)",
+  "resepsi.date": "Tanggal Resepsi",
+  "resepsi.startTime": "Jam Mulai Resepsi",
+  "resepsi.endTime": "Jam Selesai Resepsi",
 };
 
 const WeddingSettings: React.FC = () => {
@@ -196,6 +210,64 @@ const WeddingSettings: React.FC = () => {
                         )}
                     </div>
                 ))}
+            </div>
+
+            {/* Venue Section */}
+            <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="font-serif text-xl font-bold text-slate-900 border-b pb-4">Lokasi & Acara</h3>
+                
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-700">Info Lokasi</h4>
+                  {Object.entries(SETTINGS_KEYS)
+                      .filter(([key]) => key.startsWith("venue."))
+                      .map(([key, label]) => (
+                      <div key={key} className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+                          <input
+                              type="text"
+                              value={settings[key] || ""}
+                              onChange={(e) => handleChange(key, e.target.value)}
+                              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-accent focus:outline-none"
+                          />
+                      </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h4 className="font-bold text-slate-700">Acara 1 (Akad / Pemberkatan)</h4>
+                  {Object.entries(SETTINGS_KEYS)
+                      .filter(([key]) => key.startsWith("akad."))
+                      .map(([key, label]) => (
+                      <div key={key} className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+                          <input
+                              type={key.includes("date") ? "text" : key.includes("Time") ? "time" : "text"}
+                              value={settings[key] || ""}
+                              onChange={(e) => handleChange(key, e.target.value)}
+                              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-accent focus:outline-none"
+                              placeholder={key.includes("date") ? "Contoh: 11 Oktober 2025" : ""}
+                          />
+                      </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h4 className="font-bold text-slate-700">Acara 2 (Resepsi / Syukuran)</h4>
+                  {Object.entries(SETTINGS_KEYS)
+                      .filter(([key]) => key.startsWith("resepsi."))
+                      .map(([key, label]) => (
+                      <div key={key} className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+                          <input
+                              type={key.includes("date") ? "text" : key.includes("Time") ? "time" : "text"}
+                              value={settings[key] || ""}
+                              onChange={(e) => handleChange(key, e.target.value)}
+                              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-accent focus:outline-none"
+                              placeholder={key.includes("date") ? "Contoh: 11 Oktober 2025" : ""}
+                          />
+                      </div>
+                  ))}
+                </div>
             </div>
         </div>
     </div>

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Heart } from "lucide-react";
-import { WEDDING_CONFIG } from "../constants";
+import { WeddingContext } from "../App";
 
 const Footer: React.FC = () => {
+    const { config: WEDDING_CONFIG } = useContext(WeddingContext);
   const currentYear = new Date().getFullYear();
   const weddingDate = WEDDING_CONFIG?.events?.akad?.startDateTime 
     ? new Date(WEDDING_CONFIG.events.akad.startDateTime).toLocaleDateString('id-ID', { 
