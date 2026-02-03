@@ -1,4 +1,4 @@
-import { dns } from "node:dns";
+import dns from "node:dns";
 
 const TOKEN = import.meta.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = import.meta.env.TELEGRAM_CHAT_ID;
@@ -10,6 +10,10 @@ if (typeof dns !== "undefined" && dns.setDefaultResultOrder) {
 }
 
 export const sendTelegramNotification = async (text: string) => {
+  // FITUR DINONAKTIFKAN SEMENTARA
+  // Hapus baris return di bawah ini jika ingin mengaktifkan kembali
+  return;
+
   // 1. Cek konfigurasi
   if (!TOKEN || !CHAT_ID) {
     console.warn("⚠️ Telegram Token/Chat ID belum diset di .env");

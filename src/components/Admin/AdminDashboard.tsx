@@ -16,7 +16,7 @@ import {
   Settings,
   Image as ImageIcon,
 } from "lucide-react";
-import InvitationManager from "../InvitationManager";
+import InvitationManager from "./InvitationManager";
 import GalleryListManager from "./GalleryListManager";
 import WeddingSettings from "./WeddingSettings";
 

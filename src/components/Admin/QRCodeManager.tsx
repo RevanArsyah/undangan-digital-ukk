@@ -12,7 +12,7 @@ import {
   FileText,
   CheckCircle2,
 } from "lucide-react";
-import { WEDDING_CONFIG } from "../constants";
+import { WEDDING_CONFIG } from "../../constants";
 
 const QRCodeManager: React.FC<{ siteUrl: string }> = ({ siteUrl }) => {
   const [activeTab, setActiveTab] = useState<"single" | "bulk">("single");

@@ -65,6 +65,9 @@ const Footer: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-slate-500">
             Uji Kompetensi Keahlian 2026
           </p>
+          <p className="mt-2 text-sm font-bold tracking-widest text-slate-400 dark:text-slate-600">
+            DIGIVITE
+          </p>
         </div>
 
         {/* Copyright */}

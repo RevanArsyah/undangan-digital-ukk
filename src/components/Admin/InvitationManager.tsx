@@ -15,7 +15,7 @@ import {
   Check,
   FileText,
 } from "lucide-react";
-import { WEDDING_CONFIG, WEDDING_TEXT } from "../constants";
+import { WEDDING_CONFIG, WEDDING_TEXT } from "../../constants";
 
 interface GuestData {
   name: string;
